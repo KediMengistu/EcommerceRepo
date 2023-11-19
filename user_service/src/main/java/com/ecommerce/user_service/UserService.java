@@ -85,7 +85,7 @@ public class UserService {
         }
     }
 
-    //gets user with specific username.
+    //gets user with specific username - keep the casing in mind for JPA.
     public User getUserFromUserName(String username){
         //no user with username - nothing is returned.
         if(userRepository.findByusername(username).isEmpty()){

@@ -15,15 +15,15 @@ import java.util.Random;
 @Service
 public class CatalogService {
 
+    private final CatalogRepository catalogRepository;
     private final UserClient userclient;
     private final AuctionClient auctionclient;
-    private final CatalogRepository catalogRepository;
 
     @Autowired
     public CatalogService(CatalogRepository catalogRepository, UserClient userclient, AuctionClient auctionclient) {
+        this.catalogRepository = catalogRepository;
         this.userclient = userclient;
         this.auctionclient = auctionclient;
-        this.catalogRepository = catalogRepository;
     }
 
     public boolean sellOnCatalog(Catalog catalog, String sellerusername) {
@@ -57,8 +57,8 @@ public class CatalogService {
                 //assigned to be 0.0 to 999.99
                 randomShipping = random.nextDouble() * 1000;
                 randomExpedited = random.nextDouble() * 1000;
-                catalog.setShippingprice(randomShipping);
-                catalog.setExpeditedcost(randomExpedited);
+                catalog.setShippingprice(Math.round(randomShipping*100.0)/100.0);
+                catalog.setExpeditedcost(Math.round(randomExpedited*100.0)/100.0);
 
                 //obtain the endtime and enddate.
                 timenow = LocalTime.now();
@@ -84,7 +84,9 @@ public class CatalogService {
                 catalog.setEnddate(endDate);
 
                 //creating request body to be supplied to auctionservice to create
-                //auction for catalog item.
+                //auction for catalog item - JSON contains catalog and auction time info
+                //facade pattern is technically used here because user has no control or
+                //view of auction being created
 
                 catandtime = new CatalogAndTimeRequestBody(catalog, datenow, timenow, endTime);
 
@@ -92,9 +94,9 @@ public class CatalogService {
                 catalogRepository.save(catalog);
 
                 //now need to put onto auction - need to
-                //supply catalog request body parameter
+                //supply catalog request body parameter.
                 //considering this point is reached that means that the auction should be created
-                //as seller and item have been fully validated.
+                //as seller and item have been fully validated; true will be returned to indicate this.
 
                 return auctionclient.createAuctionFromCatTimeItem(catandtime);
             }
@@ -147,6 +149,11 @@ public class CatalogService {
         }
     }
 
+    //removes the catalog item by its id
+    public void removeItem(int id) {
+        catalogRepository.deleteById(id);
+    }
+
     //peforms checks to validate catalog item to be potentially sold.
     private boolean peformCatalogItemChecks(Catalog catalog) {
         //catalog name check
@@ -174,7 +181,8 @@ public class CatalogService {
         }
         //catalog duration check
         LocalTime catalogduration = catalog.getDuration();
-        if(catalogduration==null ||
+        if(catalogduration==null || (catalogduration.getHour()==0 &&
+           catalogduration.getMinute()==0 && catalogduration.getSecond()==0) ||
            catalogduration.getHour()<0 ||
            catalogduration.getMinute()<0 ||
            catalogduration.getSecond()<0){

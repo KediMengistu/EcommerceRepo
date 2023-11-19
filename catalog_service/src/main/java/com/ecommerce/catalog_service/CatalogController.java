@@ -37,4 +37,9 @@ public class CatalogController {
     public List<Catalog> searchCatalog(@RequestParam String itemname) {
         return catalogService.searchCatalog(itemname);
     }
+
+    @DeleteMapping("/deleteitem")
+    public void removeFromCatalogById(@RequestParam int id){
+        catalogService.removeItem(id);
+    }
 }
