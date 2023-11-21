@@ -67,6 +67,21 @@ public class AuctionService {
         auction.setEndtime(endtime);
         auction.setEnddate(catitem.getEnddate());
         auctionRepository.save(auction);
+
+        //notes on scheduler:
+        //we have saved the auction for the corresponding catalog item that was just made.
+        //now we need to check if the new auction is the earliest ending auction.
+        //save the recently created auction to global "newauction" variable.
+        //scheduler will then be able to have access to this newauction item.
+        //scheduler should check to see if this auction finishes eariler that the current earliest.
+        //if it does then, swap between the two.
+        //if it does not then do nothing - the scheduler will continue to check the original.
+        //alternative to having the date and time issue would maybe be to just get all the auctions
+        //as opposed to all of their end date and time values and then check the
+        //local date and time fields for each auction object
+        //ex: auctionrepository.findAll()
+        //iterate through the returned list, checking for earliest ending one
+        //and then storing that as the one that the scheduler will check.
         return true;
     }
 
@@ -84,7 +99,7 @@ public class AuctionService {
         Catalog catitem;
         CatalogAndAuctionRequestBody catauction;
 
-        //extract bidder via unique username. #
+        //extract bidder via unique username.
         bidder = userclient.findBidderFromUsername(bidderusername);
         //bidder is not user of system - invalid bid.
         if(bidder==null){
@@ -126,9 +141,6 @@ public class AuctionService {
 
                         //remove from catalog.
                         catalogclient.removeFromCatalogById(catitem.getItemid());
-
-                        //remove from auction.
-                        auctionRepository.delete(auction);
                         return false;
                     }
                     //time has not run out - further bid validation.
@@ -168,9 +180,6 @@ public class AuctionService {
 
                                 //remove from catalog.
                                 catalogclient.removeFromCatalogById(catitem.getItemid());
-
-                                //remove from auction.
-                                auctionRepository.delete(auction);
                                 return true;
                             }
                             //invalid dutch bid.

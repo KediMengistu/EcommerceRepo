@@ -42,6 +42,7 @@ public class Payment {
     }
 
     public Payment(int paidauctionid, int paiditemid, String paiditemname, String paiditemdescription, int sellerid, int payerid, String paymentstyle, double submittedbid, double shippingprice, double expeditedcost, double defaulttotal) {
+        this.paidauctionid = paidauctionid;
         this.paiditemid = paiditemid;
         this.paiditemname = paiditemname;
         this.paiditemdescription = paiditemdescription;

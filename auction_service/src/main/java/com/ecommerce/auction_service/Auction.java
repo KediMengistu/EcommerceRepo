@@ -1,7 +1,6 @@
 package com.ecommerce.auction_service;
 
 import jakarta.persistence.*;
-
 import java.time.LocalDate;
 import java.time.LocalTime;
 
@@ -20,7 +19,8 @@ public class Auction {
     private String auctiontype;
     @Column(nullable = false, columnDefinition = "DOUBLE default 0.00")
     private double highestbid;
-    @Column(nullable = false, columnDefinition = "INT default 0") //this is default by 0 as user id can never be 0; implies noone has bid.
+    @Column(nullable = false, columnDefinition = "INT default 0")
+    //this is default by 0 as user id can never be 0; implies noone has bid.
     private int highestbidderid;
     @Column(nullable = false)
     private LocalDate startdate;
@@ -49,12 +49,12 @@ public class Auction {
         this.enddate = enddate;
     }
 
-    public int getAucionid() {
+    public int getAuctionid() {
         return auctionid;
     }
 
-    public void setAucionid(int aucionid) {
-        this.auctionid = aucionid;
+    public void setAuctionid(int auctionid) {
+        this.auctionid = auctionid;
     }
 
     public int getAuctioneditemid() {
@@ -89,7 +89,7 @@ public class Auction {
         this.highestbid = highestbid;
     }
 
-    public double getHighestbidderid() {
+    public int getHighestbidderid() {
         return highestbidderid;
     }
 
