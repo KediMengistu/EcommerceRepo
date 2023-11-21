@@ -183,12 +183,14 @@ public class CatalogService {
         //c1 = checks if duration is null (it is not specified).
         //c2 = checks if duration is 0hours 0min 0seconds - we cannot have a duration of 0 time.
         //c3 = checks if any parts of the duration are negative - cannot have negative hours, min, or seconds.
-        //c4 = checks if total duration is less than 1 minute - we must have a catolog item be on auction for 60sec or 1 min.
+        //c4 = checks if duration is greater than 23hrs, 59 min, and 59 seconds.
+        //c5 = checks if total duration is less than 1 minute - we must have a catolog item be on auction for 60sec or 1 min.
         LocalTime catalogduration = catalog.getDuration();
-        if(catalogduration==null ||
-          (catalogduration.getHour()==0 && catalogduration.getMinute()==0 && catalogduration.getSecond()==0) ||
-           catalogduration.getHour()<0 || catalogduration.getMinute()<0 || catalogduration.getSecond()<0 ||
-          (catalogduration.getHour() * 3600 + catalogduration.getMinute() * 60 + catalogduration.getSecond() < 60))
+        if (catalogduration == null ||
+           (catalogduration.getHour() == 0 && catalogduration.getMinute() == 0 && catalogduration.getSecond() == 0) ||
+            catalogduration.getHour() < 0 || catalogduration.getMinute() < 0 || catalogduration.getSecond() < 0 ||
+            catalogduration.getHour() > 23 || catalogduration.getMinute() > 59 || catalogduration.getSecond() > 59 ||
+           (catalogduration.toSecondOfDay() < 60))
         {
             return false;
         }
