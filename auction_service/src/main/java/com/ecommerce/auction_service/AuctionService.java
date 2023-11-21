@@ -82,6 +82,10 @@ public class AuctionService {
         //ex: auctionrepository.findAll()
         //iterate through the returned list, checking for earliest ending one
         //and then storing that as the one that the scheduler will check.
+        //*****Important note*****
+        //for bid and payment to work you need to make it so that when the catalog item is deleted
+        //so is its corresponding existing auction - I can explain to you when you have time or at
+        //the meeting.
         return true;
     }
 
@@ -141,6 +145,9 @@ public class AuctionService {
 
                         //remove from catalog.
                         catalogclient.removeFromCatalogById(catitem.getItemid());
+
+                        //remove from auction.
+                        auctionRepository.delete(auction);
                         return false;
                     }
                     //time has not run out - further bid validation.
@@ -180,6 +187,9 @@ public class AuctionService {
 
                                 //remove from catalog.
                                 catalogclient.removeFromCatalogById(catitem.getItemid());
+
+                                //remove from auction.
+                                auctionRepository.delete(auction);
                                 return true;
                             }
                             //invalid dutch bid.

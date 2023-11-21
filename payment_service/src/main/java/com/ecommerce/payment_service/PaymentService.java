@@ -36,37 +36,46 @@ public class PaymentService {
         cat = catauction.getCatalog();
         auction = catauction.getAuction();
 
-        //create and set parameters for payment obj to be stored.
-        pay = new Payment();
-        //id for paid auction derived from auction table.
-        pay.setPaidauctionid(auction.getAuctionid());
-        //id for paid item derived from auction table.
-        pay.setPaiditemid(auction.getAuctioneditemid());
-        //name for paid item derived from catalog table.
-        pay.setPaiditemname(cat.getItemname());
-        //description for paid item derived from catalog table.
-        pay.setPaiditemdescription(cat.getItemdescription());
-        //seller for paid item derived from catalog table.
-        pay.setSellerid(cat.getSellerid());
-        //id for auction winner derived from auction table.
-        pay.setPayerid(auction.getHighestbidderid());
-        //style of pay for paid item is derived from auction table.
-        pay.setPaymentstyle(auction.getAuctiontype());
-        //submitted winning bid derived from auction table.
-        pay.setSubmittedbid(auction.getHighestbid());
-        //shipping price for paid item derived from catalog table.
-        pay.setShippingprice(cat.getShippingprice());
-        //expedited cost for paid item derived from catalog table.
-        pay.setExpeditedcost(cat.getExpeditedcost());
+        //need to first check if the auction has had any bids; if not that means the highestbidderid = 0
+        //that means no user has made a bid for the auctioned item and so no payment info is generated
+        //for that auction
+        if(auction.getHighestbidderid()==0){
+            return;
+        }
+        //there is a bidder for the ended auction and so payment can be generated for that auction.
+        else{
+            //create and set parameters for payment obj to be stored.
+            pay = new Payment();
+            //id for paid auction derived from auction table.
+            pay.setPaidauctionid(auction.getAuctionid());
+            //id for paid item derived from auction table.
+            pay.setPaiditemid(auction.getAuctioneditemid());
+            //name for paid item derived from catalog table.
+            pay.setPaiditemname(cat.getItemname());
+            //description for paid item derived from catalog table.
+            pay.setPaiditemdescription(cat.getItemdescription());
+            //seller for paid item derived from catalog table.
+            pay.setSellerid(cat.getSellerid());
+            //id for auction winner derived from auction table.
+            pay.setPayerid(auction.getHighestbidderid());
+            //style of pay for paid item is derived from auction table.
+            pay.setPaymentstyle(auction.getAuctiontype());
+            //submitted winning bid derived from auction table.
+            pay.setSubmittedbid(auction.getHighestbid());
+            //shipping price for paid item derived from catalog table.
+            pay.setShippingprice(cat.getShippingprice());
+            //expedited cost for paid item derived from catalog table.
+            pay.setExpeditedcost(cat.getExpeditedcost());
 
-        //obtaining default total.
-        //default includes no expedited shipping
-        totalcost = cat.getShippingprice() + auction.getHighestbid();
-        totalcost = Math.round(totalcost * 100.0)/100.0;
-        pay.setDefaulttotal(totalcost);
+            //obtaining default total.
+            //default includes no expedited shipping
+            totalcost = cat.getShippingprice() + auction.getHighestbid();
+            totalcost = Math.round(totalcost * 100.0)/100.0;
+            pay.setDefaulttotal(totalcost);
 
-        //save payment in payment table.
-        paymentRepository.save(pay);
+            //save payment in payment table.
+            paymentRepository.save(pay);
+        }
     }
 
     //provides a list of all the payments.
