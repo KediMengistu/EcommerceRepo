@@ -28,14 +28,15 @@ public class PaymentController {
     }
 
     //updates currently existing payment info with input parameters.
-    @PutMapping("/paymentinfo")
-    boolean payForAuctionedOffItem(@RequestParam int cardnum,
+    @PutMapping("/insertpaymentinfo")
+    boolean payForAuctionedOffItem(@RequestParam String username,
+                                   @RequestParam int paidauctionid,
+                                   @RequestParam int cardnum,
                                    @RequestParam String cardfname,
                                    @RequestParam String cardlname,
                                    @RequestParam LocalDate expdate,
-                                   @RequestParam int seccuritycode,
-                                   @RequestParam String username){
-        return paymentService.payForItem(username);
+                                   @RequestParam int securitycode){
+        return paymentService.payForItem(username, paidauctionid, cardnum, cardfname, cardlname, expdate, securitycode);
     }
 
 

@@ -43,19 +43,13 @@ public class UserService {
 
     //signing in.
     public boolean signIn(String username, String userpassword) {
-        //gets optional user based on username - may or may not be empty.
-        Optional<User> opUser = userRepository.findByusername(username);
-        User person;
-
-        //user with specified username is not in user table.
-        if (opUser.isEmpty()) {
+        User person = getUserFromUserName(username);
+        //user does not exist.
+        if(person==null){
             return false;
         }
-        //user with specified username is in user table.
+        //user does exist.
         else {
-            //sets user corresponding to username.
-            person = opUser.get();
-
             //confirms if user password is valid and matches the password of the user with the specified username.
             if (person.getUserpassword() != null && !person.getUserpassword().isEmpty() &&
                     person.getUserpassword().equals(userpassword)) {
@@ -86,14 +80,25 @@ public class UserService {
     }
 
     //gets user with specific username - keep the casing in mind for JPA.
+    //this is taken care of by iterating through entire user table.
     public User getUserFromUserName(String username){
-        //no user with username - nothing is returned.
-        if(userRepository.findByusername(username).isEmpty()){
+        //get all users
+        List<User> userlist = userRepository.findAll();
+        //no users.
+        if(userlist.isEmpty()){
             return null;
         }
-        //user with username exists - user is returned.
+        //users exist.
         else{
-            return userRepository.findByusername(username).get();
+            //iterate through and find user with specific username - must match casing.
+            for(User result: userlist){
+                String name = result.getUsername();
+                //the user was found.
+                if(name.equals(username)){
+                    return result;
+                }
+            }
+            return null;
         }
     }
 
@@ -101,8 +106,8 @@ public class UserService {
     private boolean peformUserChecks(User user) {
         //username checks
         String username = user.getUsername();
-        Optional<User> ref = userRepository.findByusername(username);
-        if (username == null || username.isEmpty() || !ref.isEmpty()) {
+        User ref = getUserFromUserName(username);
+        if (username == null || username.isEmpty() || ref!=null) {
             return false;
         }
 

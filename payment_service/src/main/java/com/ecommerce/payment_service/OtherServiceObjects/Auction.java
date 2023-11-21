@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 
 public class Auction {
+    private int auctionid;
     private int auctioneditemid;
     private double startprice;
     private String auctiontype;
@@ -29,6 +30,14 @@ public class Auction {
         this.duration = duration;
         this.endtime = endtime;
         this.enddate = enddate;
+    }
+
+    public int getAuctionid() {
+        return auctionid;
+    }
+
+    public void setAuctionid(int auctionid) {
+        this.auctionid = auctionid;
     }
 
     public int getAuctioneditemid() {

@@ -8,6 +8,7 @@ import com.ecommerce.payment_service.OtherServiceObjects.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,6 +38,8 @@ public class PaymentService {
 
         //create and set parameters for payment obj to be stored.
         pay = new Payment();
+        //id for paid auction derived from auction table.
+        pay.setPaidauctionid(auction.getAuctionid());
         //id for paid item derived from auction table.
         pay.setPaiditemid(auction.getAuctioneditemid());
         //name for paid item derived from catalog table.
@@ -72,11 +75,12 @@ public class PaymentService {
     }
 
     //used to pay for item that was won.
-    public boolean payForItem(String username) {
+    public boolean payForItem(String username, int paidauctionid, int cardnum, String cardfname, String cardlname, LocalDate expdate, int securitycode) {
         //local fields.
         User user;
         Optional<Payment> opPay;
         Payment pay;
+        boolean payInfoIsValid = false;
 
         //try to extract the user from the user table with the specific unique username.
         user = userclient.findPayerFromUsername(username);
@@ -87,22 +91,55 @@ public class PaymentService {
         }
         //user does exist, so can potentially pay for item.
         else{
-            //extract the payment info corresponding to the user whose username is the input
-            //and the associated id.
-            opPay = paymentRepository.findBypayerid(user.getUserid());
+            //extract payment entry from unique paidauctionid.
+            opPay = paymentRepository.findBypaidauctionid(paidauctionid);
 
             //there does not exist a payment entry corresponding to the user with input username.
             if(opPay.isEmpty()){
                 return false;
             }
-            //payment entry exists for payer with username
+            //payment entry exists with the unique paidauctionid.
             else{
-                //save payment in placeholder
+                //save payment in placeholder.
                 pay = opPay.get();
 
-                //can display the winner information, payment information and the transaction b/w payer and seller, etc.
-                return true;
+                //check to see if the user corresponds to the payment with paidauctionid.
+                //the user will be confirmed as the registered payer/bid winner.
+                if(user.getUserid()==pay.getPayerid()){
+                    //update payment information if all is valid.
+                    payInfoIsValid = checkPayInfo(cardnum, cardfname, cardlname, expdate, securitycode);
+                    if(payInfoIsValid) {
+                        pay.setUsercardnumber(cardnum);
+                        pay.setUsercardfname(cardfname);
+                        pay.setUsercardlname(cardlname);
+                        pay.setUsercardexpdate(expdate);
+                        pay.setUsercardsecuritycode(securitycode);
+                        paymentRepository.save(pay);
+                        return true;
+                    }
+                    return false;
+                }
+                return false;
             }
         }
+    }
+
+    private boolean checkPayInfo(int cardnum, String cardfname, String cardlname, LocalDate expdate, int securitycode) {
+        if(String.valueOf(cardnum).length() != 9){
+            return false;
+        }
+        if(cardfname==null || cardfname.isEmpty()){
+            return false;
+        }
+        if(cardlname==null || cardlname.isEmpty()){
+            return false;
+        }
+        if(expdate.isBefore(LocalDate.now())){
+            return false;
+        }
+        if(String.valueOf(securitycode).length() != 3){
+            return false;
+        }
+        return true;
     }
 }

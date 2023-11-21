@@ -35,7 +35,7 @@ public class AuctionService {
     //creates the auction - never called by request from user - only internal calls from
     //catalog
     public boolean createAuction(CatalogAndTimeRequestBody catandtime) {
-        //localFeilds
+        //local fields
         //the auction to be saved in auction table.
         Auction auction = new Auction();
 
@@ -84,7 +84,7 @@ public class AuctionService {
         Catalog catitem;
         CatalogAndAuctionRequestBody catauction;
 
-        //extract bidder via unique username.
+        //extract bidder via unique username. #
         bidder = userclient.findBidderFromUsername(bidderusername);
         //bidder is not user of system - invalid bid.
         if(bidder==null){
@@ -92,8 +92,9 @@ public class AuctionService {
         }
         //bidder is not user of system.
         else{
-            //extract auction for the auction that has key = auctioneditemid.
-            opAuction = auctionRepository.findById(auctioneditemid);
+            //extract auction for the auction that has the item with auctioneditemid.
+            //one auction per item so it must be unique.
+            opAuction = auctionRepository.findByauctioneditemid(auctioneditemid);
 
             //auction no longer up or never existed.
             if(opAuction.isEmpty()){
@@ -104,8 +105,8 @@ public class AuctionService {
                 //set auction placeholder.
                 auction = opAuction.get();
 
-                //extract catalog item that corresponds to auction that bid wants to enter.
-                catitem = catalogclient.searchCatalogById(auctioneditemid);
+                //extract catalog item that corresponds to auction that the bid wants to enter.
+                catitem = catalogclient.searchCatalogById(auction.getAuctioneditemid());
 
                 //check if bidder is not the same as seller of catalog item on auction.
                 //true means invalid.
