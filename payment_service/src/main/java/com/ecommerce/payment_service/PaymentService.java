@@ -38,7 +38,7 @@ public class PaymentService {
 
         //need to first check if the auction has had any bids; if not that means the highestbidderid = 0
         //that means no user has made a bid for the auctioned item and so no payment info is generated
-        //for that auction
+        //for that auction - essentially we are filtering for and storing only payments for auctions that have bids.
         if(auction.getHighestbidderid()==0){
             return;
         }
