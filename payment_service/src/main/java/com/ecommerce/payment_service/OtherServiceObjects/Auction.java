@@ -15,11 +15,14 @@ public class Auction {
     private LocalTime duration;
     private LocalTime endtime;
     private LocalDate enddate;
+    private LocalTime nextdecrementtime;
+    private LocalTime decrementinvterval;
+    private double decrementvalue;
 
     public Auction() {
     }
 
-    public Auction(int auctioneditemid, double startprice, String auctiontype, double highestbid, int highestbidderid, LocalDate startdate, LocalTime starttime, LocalTime duration, LocalTime endtime, LocalDate enddate) {
+    public Auction(int auctioneditemid, double startprice, String auctiontype, double highestbid, int highestbidderid, LocalDate startdate, LocalTime starttime, LocalTime duration, LocalTime endtime, LocalDate enddate, LocalTime nextdecrementtime, LocalTime decrementinvterval, double decrementvalue) {
         this.auctioneditemid = auctioneditemid;
         this.startprice = startprice;
         this.auctiontype = auctiontype;
@@ -30,6 +33,9 @@ public class Auction {
         this.duration = duration;
         this.endtime = endtime;
         this.enddate = enddate;
+        this.nextdecrementtime = nextdecrementtime;
+        this.decrementinvterval = decrementinvterval;
+        this.decrementvalue = decrementvalue;
     }
 
     public int getAuctionid() {
@@ -118,5 +124,29 @@ public class Auction {
 
     public void setEnddate(LocalDate enddate) {
         this.enddate = enddate;
+    }
+
+    public LocalTime getNextdecrementtime() {
+        return nextdecrementtime;
+    }
+
+    public void setNextdecrementtime(LocalTime nextdecrementtime) {
+        this.nextdecrementtime = nextdecrementtime;
+    }
+
+    public LocalTime getDecrementinvterval() {
+        return decrementinvterval;
+    }
+
+    public void setDecrementinvterval(LocalTime decrementinvterval) {
+        this.decrementinvterval = decrementinvterval;
+    }
+
+    public double getDecrementvalue() {
+        return decrementvalue;
+    }
+
+    public void setDecrementvalue(double decrementvalue) {
+        this.decrementvalue = decrementvalue;
     }
 }

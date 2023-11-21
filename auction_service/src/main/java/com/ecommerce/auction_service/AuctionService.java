@@ -137,8 +137,10 @@ public class AuctionService {
                 //bidder is not seller can proceed with further bid validation.
                 else{
                     //check if time of auction has run out - cannot bid so the highest bidder is loaded.
+                    //check if it is dutch auction whose value has been decremented.
                     if (auction.getEnddate().isBefore(LocalDate.now()) || (auction.getEnddate().isEqual(LocalDate.now())
-                        && auction.getEndtime().isBefore(LocalTime.now()))) {
+                        && auction.getEndtime().isBefore(LocalTime.now())) || (auction.getAuctiontype().equals("Dutch")
+                        && auction.getStartprice()<=0)) {
                         //load to payment.
                         //catitem holds info about auctioned off item.
                         //auction holds info about the recently completed auction.
