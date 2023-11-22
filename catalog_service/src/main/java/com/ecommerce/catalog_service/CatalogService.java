@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -61,14 +62,14 @@ public class CatalogService {
                 catalog.setExpeditedcost(Math.round(randomExpedited*100.0)/100.0);
 
                 //obtain the endtime and enddate.
-                timenow = LocalTime.now();
+                timenow = LocalTime.now().truncatedTo(ChronoUnit.SECONDS);
                 datenow = LocalDate.now();
-                catalogduration = catalog.getDuration();
+                catalogduration = catalog.getDuration().truncatedTo(ChronoUnit.SECONDS);
 
                 //calculates the endtime.
                 endTime = timenow.plusHours(catalogduration.getHour())
                                  .plusMinutes(catalogduration.getMinute())
-                                 .plusSeconds(catalogduration.getSecond());
+                                 .plusSeconds(catalogduration.getSecond()).truncatedTo(ChronoUnit.SECONDS);
 
                 //checks to see if endtime goes into the next day.
                 if (endTime.isBefore(timenow)) {

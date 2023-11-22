@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 
@@ -57,18 +58,24 @@ public class AuctionService {
         //dutch = 0.25% higher than the original startprice for corresponding catalog item.
         if(auction.getAuctiontype().equals("Forward")){
             auction.setStartprice(Math.round(catitem.getStartprice()*100.0)/100.0);
+            auction.setStartdate(startdate);
+            auction.setStarttime(starttime);
+            auction.setDuration(catitem.getDuration());
+            auction.setEndtime(endtime);
+            auction.setEnddate(catitem.getEnddate());
+            auctionRepository.save(auction);
         }
         //it is dutch so 25% higher start price.
         else if(auction.getAuctiontype().equals("Dutch")){
             auction.setStartprice(Math.round((catitem.getStartprice() * 1.25)*100.0)/100.0);
-            findProperDecrementedTimeAndValue(auction);
+            auction.setStartdate(startdate);
+            auction.setStarttime(starttime);
+            auction.setDuration(catitem.getDuration());
+            auction.setEndtime(endtime);
+            auction.setEnddate(catitem.getEnddate());
+            setupDecrementvalues(auction);
+            auctionRepository.save(auction);
         }
-        auction.setStartdate(startdate);
-        auction.setStarttime(starttime);
-        auction.setDuration(catitem.getDuration());
-        auction.setEndtime(endtime);
-        auction.setEnddate(catitem.getEnddate());
-        auctionRepository.save(auction);
 
         //notes on scheduler:
         //we have saved the auction for the corresponding catalog item that was just made.
@@ -137,10 +144,14 @@ public class AuctionService {
                 //bidder is not seller can proceed with further bid validation.
                 else{
                     //check if time of auction has run out - cannot bid so the highest bidder is loaded.
-                    //check if it is dutch auction whose value has been decremented.
-                    if (auction.getEnddate().isBefore(LocalDate.now()) || (auction.getEnddate().isEqual(LocalDate.now())
-                        && auction.getEndtime().isBefore(LocalTime.now())) || (auction.getAuctiontype().equals("Dutch")
-                        && auction.getStartprice()<=0)) {
+                    //check if it is dutch auction whose value has been decremented to 0 or less than 0 - also implies that no bidder for that auction.
+                    if (auction.getEnddate().isBefore(LocalDate.now()) ||
+                       (auction.getEnddate().isEqual(LocalDate.now()) &&
+                        auction.getEndtime().equals(LocalTime.now().truncatedTo(ChronoUnit.SECONDS))) ||
+                       (auction.getEnddate().isEqual(LocalDate.now()) &&
+                        auction.getEndtime().isBefore(LocalTime.now())) ||
+                       (auction.getAuctiontype().equals("Dutch") &&
+                            auction.getStartprice()<=0)) {
                         //load to payment.
                         //catitem holds info about auctioned off item.
                         //auction holds info about the recently completed auction.
@@ -207,120 +218,75 @@ public class AuctionService {
         }
     }
 
-    private void findProperDecrementedTimeAndValue(Auction auction) {
-        //local fields.
-        LocalTime duration;
-        double startprice;
-        int totalseconds;
-        double numberofdecrements;
-
-        //local fields used to initialize parameters for auction.
-        LocalTime nextdecrementtime;
-        LocalTime decrementinveral;
-        double decrementvalue;
-
-        //setting up values.
-        duration = auction.getDuration();
-        startprice = auction.getStartprice();
-
-        //convert total duration into seconds.
-        totalseconds = duration.getHour() * 3600 + duration.getMinute() * 60 + duration.getSecond();
-
-        //1min <= duration <= 5 min - decrement every 30 seconds
-        if (totalseconds >= 60 && totalseconds <= 5 * 60) {
-            numberofdecrements = totalseconds/30;
-            decrementvalue = startprice/numberofdecrements;
-            decrementvalue = Math.round((decrementvalue * 100.0)/100.0);
-            nextdecrementtime = auction.getStarttime();
-
-            //setting up and saving dutch auction info
-            decrementinveral = LocalTime.of(0, 0, 30);
-            nextdecrementtime = nextdecrementtime.plusMinutes(decrementinveral.getHour())
-                                .plusMinutes(decrementinveral.getMinute())
-                                .plusSeconds(decrementinveral.getSecond());
-            auction.setDecrementinvterval(decrementinveral);
-            auction.setDecrementvalue(decrementvalue);
-        }
-
-        //5min < duration <= 10 min - decrement every 1 min
-        else if (totalseconds > 5 * 60 && totalseconds <= 10 * 60) {
-            numberofdecrements = totalseconds/60;
-            decrementvalue = startprice/numberofdecrements;
-            decrementvalue = Math.round((decrementvalue * 100.0)/100.0);
-            nextdecrementtime = auction.getStarttime();
-
-            //setting up and saving dutch auction info
-            decrementinveral = LocalTime.of(0, 1, 0);
-            nextdecrementtime = nextdecrementtime.plusMinutes(decrementinveral.getHour())
-                                .plusMinutes(decrementinveral.getMinute())
-                                .plusSeconds(decrementinveral.getSecond());
-            auction.setDecrementinvterval(decrementinveral);
-            auction.setDecrementvalue(decrementvalue);
-        }
-
-        //10min < duration <= 30 min - decrement every 5 min
-        else if (totalseconds > 10 * 60 && totalseconds <= 30 * 60) {
-            numberofdecrements = totalseconds/300;
-            decrementvalue = startprice/numberofdecrements;
-            decrementvalue = Math.round((decrementvalue * 100.0)/100.0);
-            nextdecrementtime = auction.getStarttime();
-
-            //setting up and saving dutch auction info
-            decrementinveral = LocalTime.of(0, 5, 0);
-            nextdecrementtime = nextdecrementtime.plusMinutes(decrementinveral.getHour())
-                                .plusMinutes(decrementinveral.getMinute())
-                                .plusSeconds(decrementinveral.getSecond());
-            auction.setDecrementinvterval(decrementinveral);
-            auction.setDecrementvalue(decrementvalue);
-        }
-
-        //30min < duration <= 60 min - decrement every 15 min
-        else if (totalseconds > 30 * 60 && totalseconds <= 60 * 60) {
-            numberofdecrements = totalseconds/(15*60);
-            decrementvalue = startprice/numberofdecrements;
-            decrementvalue = Math.round((decrementvalue * 100.0)/100.0);
-            nextdecrementtime = auction.getStarttime();
-
-            //setting up and saving dutch auction info
-            decrementinveral = LocalTime.of(0, 15, 0);
-            nextdecrementtime = nextdecrementtime.plusMinutes(decrementinveral.getHour())
-                                .plusMinutes(decrementinveral.getMinute())
-                                .plusSeconds(decrementinveral.getSecond());
-            auction.setDecrementinvterval(decrementinveral);
-            auction.setDecrementvalue(decrementvalue);
-        }
-        //duration > 60 min - decrement every 30 min
-        else if(totalseconds < 60 * 60){
-            numberofdecrements = totalseconds/(30*60);
-            decrementvalue = startprice/numberofdecrements;
-            decrementvalue = Math.round((decrementvalue * 100.0)/100.0);
-            nextdecrementtime = auction.getStarttime();
-
-            //setting up and saving dutch auction info
-            decrementinveral = LocalTime.of(0, 30, 0);
-            nextdecrementtime = nextdecrementtime.plusMinutes(decrementinveral.getHour())
-                                .plusMinutes(decrementinveral.getMinute())
-                                .plusSeconds(decrementinveral.getSecond());
-            auction.setDecrementinvterval(decrementinveral);
-            auction.setDecrementvalue(decrementvalue);
-        }
+    //we have set up to the decrement value to correspond to decrement every 60 seconds
+    private void setupDecrementvalues(Auction auction) {
+        double startprice = auction.getStartprice();
+        int totalseconds = auction.getDuration().getHour() * 3600 +
+                           auction.getDuration().getMinute() * 60 +
+                           auction.getDuration().getSecond();
+        int numofdecrement = totalseconds / 60;
+        double decrementval = Math.round(startprice/numofdecrement)*100.0/100.0;
+        auction.setDecrementvalue(decrementval);
     }
 
+    //performs scheduling to remove each expired auction.
     @Scheduled(fixedRate = 1000)
-    private void dutchAuctionDecremented(){
+    private void auctionExpired(){
         //local field.
         List<Auction> auctionlist;
         Catalog catitem;
         CatalogAndAuctionRequestBody catauction;
-        LocalTime duraction;
 
         //intialize list
         auctionlist = auctionRepository.findAll();
 
-        //going through the entire auction list so the list is required.
+        //going through the entire auction repository.
         for(Auction auction: auctionlist){
-            duraction = auction.getDuration();
 
+            //need to first get the catalog item corresponding to the auction.
+            catitem = catalogclient.searchCatalogById(auction.getAuctioneditemid());
+
+            //finding auctions which have expired - add and remove appropriate information.
+            if (auction.getEnddate().isBefore(LocalDate.now()) ||
+               (auction.getEnddate().isEqual(LocalDate.now()) &&
+                auction.getEndtime().equals(LocalTime.now().truncatedTo(ChronoUnit.SECONDS))) ||
+               (auction.getEnddate().isEqual(LocalDate.now()) &&
+                auction.getEndtime().isBefore(LocalTime.now()))) {
+
+                catauction = new CatalogAndAuctionRequestBody(catitem, auction);
+                //load to payment.
+                paymentclient.loadPayInfoFromAuctionEnd(catauction);
+                //remove from catalog.
+                catalogclient.removeFromCatalogById(catitem.getItemid());
+                //remove from auction.
+                auctionRepository.delete(auction);
+                //console message for testing purposes
+                System.out.println("Auction " + auction.getAuctionid() + ", is removed\n");
+            }
+        }
+    }
+
+    //scheduled decrement every 60 seconds
+    @Scheduled(fixedRate = 60000)
+    private void dutchAuctionDecremented(){
+        //local field.
+        List<Auction> auctionlist;
+        Auction auction;
+        double result;
+
+        //intialize list
+        auctionlist = auctionRepository.findAll();
+
+        //going through the entire auction list.
+        for(int i=0; i<auctionlist.size(); i++){
+            auction = auctionlist.get(i);
+            //checks only dutch auctions.
+            if(auction.getAuctiontype().equals("Dutch")){
+                result = auction.getStartprice()-auction.getDecrementvalue();
+                auction.setStartprice(Math.round(result*100.0)/100.0);
+                auctionRepository.save(auction);
+                System.out.println("Changed\n\n");
+            }
         }
     }
 }
