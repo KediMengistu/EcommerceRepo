@@ -443,7 +443,7 @@ public class AuctionService {
 //        }
 //    }
 
-    @Scheduled(fixedRate = 30000)
+    @Scheduled(fixedRate = 1000)
     private void dutchAuctionDecremented(){
         List<Auction> auctionlist;
         Catalog catitem;
@@ -491,10 +491,6 @@ public class AuctionService {
                     auction.setNextdecrementtime(nextdectime);
                     auction.setNextdecrementdate(nextdecdate);
                     auctionRepository.save(auction);
-                    System.out.println("price: "+startprice);
-                    System.out.println("dectime: "+nextdectime);
-                    System.out.println("decdate: "+nextdecdate);
-                    System.out.println("decinv: "+decinterval);
                 }
             }
         }
