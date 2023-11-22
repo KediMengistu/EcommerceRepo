@@ -51,11 +51,14 @@ public class CatalogService {
 
             //item is valid - can be uploaded to catalog.
             if(itemIsValid==true){
-                //first must store seller id
+                //first must store seller id.
                 catalog.setSellerid(seller.getUserid());
 
+                //do rounding of price to make sure 2 decimal is mainted.
+                catalog.setStartprice(Math.round(catalog.getStartprice()*100.0)/100.0);
+
                 //randomly assign shippingprice, and expeditedcost values.
-                //assigned to be 0.0 to 999.99
+                //assigned to be 0.0 to 999.99.
                 randomShipping = random.nextDouble() * 1000;
                 randomExpedited = random.nextDouble() * 1000;
                 catalog.setShippingprice(Math.round(randomShipping*100.0)/100.0);
@@ -164,20 +167,23 @@ public class CatalogService {
         }
         //catalog description check
         String catalogdescription = catalog.getItemdescription();
-        if(catalogname==null || catalogname.isEmpty()){
+        if(catalogdescription==null || catalogdescription.isEmpty()){
             return false;
         }
         //catalog auction check
         String catalogauctiontype = catalog.getAuctiontype();
-        if(catalogname==null ||
-           catalogname.isEmpty() ||
+        if(catalogauctiontype==null ||
+           catalogauctiontype.isEmpty() ||
            (!catalogauctiontype.equals("Forward") &&
            !catalogauctiontype.equals("Dutch"))){
             return false;
         }
         //catalog startprice check
+        //must be non-negative and at most 2 decimal places long
         double catalogstartprice = catalog.getStartprice();
-        if(catalogstartprice < 0){
+        String priceStr = String.format("%.2f", catalogstartprice);
+        String regex = "\\d+\\.\\d{2}";
+        if(catalogstartprice < 0 || !priceStr.matches(regex)){
             return false;
         }
         //catalog duration check
@@ -191,7 +197,7 @@ public class CatalogService {
            (catalogduration.getHour() == 0 && catalogduration.getMinute() == 0 && catalogduration.getSecond() == 0) ||
             catalogduration.getHour() < 0 || catalogduration.getMinute() < 0 || catalogduration.getSecond() < 0 ||
             catalogduration.getHour() > 23 || catalogduration.getMinute() > 59 || catalogduration.getSecond() > 59 ||
-           (catalogduration.toSecondOfDay() < 60))
+           (catalogduration.getHour() * 3600 + catalogduration.getMinute() * 60 + catalogduration.getSecond() < 60))
         {
             return false;
         }

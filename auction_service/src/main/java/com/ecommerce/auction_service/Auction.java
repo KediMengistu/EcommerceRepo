@@ -33,11 +33,14 @@ public class Auction {
     @Column(nullable = false)
     private LocalDate enddate;
     private double decrementvalue;
+    private LocalTime nextdecrementtime;
+    private LocalDate nextdecrementdate;
+    private LocalTime decrementinterval;
 
     public Auction() {
     }
 
-    public Auction(int auctioneditemid, double startprice, String auctiontype, double highestbid, int highestbidderid, LocalDate startdate, LocalTime starttime, LocalTime duration, LocalTime endtime, LocalDate enddate, double decrementvalue) {
+    public Auction(int auctioneditemid, double startprice, String auctiontype, double highestbid, int highestbidderid, LocalDate startdate, LocalTime starttime, LocalTime duration, LocalTime endtime, LocalDate enddate, double decrementvalue, LocalTime nextdecrementtime, LocalDate nextdecrementdate, LocalTime decrementinterval) {
         this.auctioneditemid = auctioneditemid;
         this.startprice = startprice;
         this.auctiontype = auctiontype;
@@ -49,6 +52,9 @@ public class Auction {
         this.endtime = endtime;
         this.enddate = enddate;
         this.decrementvalue = decrementvalue;
+        this.nextdecrementtime = nextdecrementtime;
+        this.nextdecrementdate = nextdecrementdate;
+        this.decrementinterval = decrementinterval;
     }
 
     public int getAuctionid() {
@@ -145,5 +151,29 @@ public class Auction {
 
     public void setDecrementvalue(double decrementvalue) {
         this.decrementvalue = decrementvalue;
+    }
+
+    public LocalTime getNextdecrementtime() {
+        return nextdecrementtime;
+    }
+
+    public void setNextdecrementtime(LocalTime nextdecrementtime) {
+        this.nextdecrementtime = nextdecrementtime;
+    }
+
+    public LocalDate getNextdecrementdate() {
+        return nextdecrementdate;
+    }
+
+    public void setNextdecrementdate(LocalDate nextdecrementdate) {
+        this.nextdecrementdate = nextdecrementdate;
+    }
+
+    public LocalTime getDecrementinterval() {
+        return decrementinterval;
+    }
+
+    public void setDecrementinterval(LocalTime decrementinterval) {
+        this.decrementinterval = decrementinterval;
     }
 }
