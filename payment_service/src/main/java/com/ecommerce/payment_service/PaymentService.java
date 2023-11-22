@@ -2,6 +2,7 @@ package com.ecommerce.payment_service;
 
 import com.ecommerce.payment_service.Client.UserClient;
 import com.ecommerce.payment_service.IncomingRequestObjectBodies.CatalogAndAuctionRequestBody;
+import com.ecommerce.payment_service.IncomingRequestObjectBodies.PaymentInfo;
 import com.ecommerce.payment_service.OtherServiceObjects.Auction;
 import com.ecommerce.payment_service.OtherServiceObjects.Catalog;
 import com.ecommerce.payment_service.OtherServiceObjects.User;
@@ -91,7 +92,7 @@ public class PaymentService {
     }
 
     //used to pay for item that was won.
-    public boolean payForItem(String username, int paidauctionid, int cardnum, String cardfname, String cardlname, LocalDate expdate, int securitycode) {
+    public boolean payForItem(PaymentInfo paymentInfo) {
         //local fields.
         User user;
         Optional<Payment> opPay;
@@ -99,7 +100,7 @@ public class PaymentService {
         boolean payInfoIsValid = false;
 
         //try to extract the user from the user table with the specific unique username.
-        user = userclient.findPayerFromUsername(username);
+        user = userclient.findPayerFromUsername(paymentInfo.getUsername());
 
         //user does not exist, so cannot pay for item.
         if(user==null){
@@ -108,7 +109,7 @@ public class PaymentService {
         //user does exist, so can potentially pay for item.
         else{
             //extract payment entry from unique paidauctionid.
-            opPay = paymentRepository.findBypaidauctionid(paidauctionid);
+            opPay = paymentRepository.findBypaidauctionid(paymentInfo.getPaidauctionid());
 
             //there does not exist a payment entry corresponding to the user with input username.
             if(opPay.isEmpty()){
@@ -123,13 +124,13 @@ public class PaymentService {
                 //the user will be confirmed as the registered payer/bid winner.
                 if(user.getUserid()==pay.getPayerid()){
                     //update payment information if all is valid.
-                    payInfoIsValid = checkPayInfo(cardnum, cardfname, cardlname, expdate, securitycode);
+                    payInfoIsValid = checkPayInfo(paymentInfo.getCardnum(), paymentInfo.getCardfname(), paymentInfo.getCardlname(), paymentInfo.getExpdate(), paymentInfo.getSecuritycode());
                     if(payInfoIsValid) {
-                        pay.setUsercardnumber(cardnum);
-                        pay.setUsercardfname(cardfname);
-                        pay.setUsercardlname(cardlname);
-                        pay.setUsercardexpdate(expdate);
-                        pay.setUsercardsecuritycode(securitycode);
+                        pay.setUsercardnumber(paymentInfo.getCardnum());
+                        pay.setUsercardfname(paymentInfo.getCardfname());
+                        pay.setUsercardlname(paymentInfo.getCardlname());
+                        pay.setUsercardexpdate(paymentInfo.getExpdate());
+                        pay.setUsercardsecuritycode(paymentInfo.getSecuritycode());
                         paymentRepository.save(pay);
                         return true;
                     }

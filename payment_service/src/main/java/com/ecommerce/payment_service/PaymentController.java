@@ -1,6 +1,7 @@
 package com.ecommerce.payment_service;
 
 import com.ecommerce.payment_service.IncomingRequestObjectBodies.CatalogAndAuctionRequestBody;
+import com.ecommerce.payment_service.IncomingRequestObjectBodies.PaymentInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,14 +30,8 @@ public class PaymentController {
 
     //updates currently existing payment info with input parameters.
     @PutMapping("/insertpaymentinfo")
-    boolean payForAuctionedOffItem(@RequestParam String username,
-                                   @RequestParam int paidauctionid,
-                                   @RequestParam int cardnum,
-                                   @RequestParam String cardfname,
-                                   @RequestParam String cardlname,
-                                   @RequestParam LocalDate expdate,
-                                   @RequestParam int securitycode){
-        return paymentService.payForItem(username, paidauctionid, cardnum, cardfname, cardlname, expdate, securitycode);
+    boolean payForAuctionedOffItem(@RequestBody PaymentInfo paymentInfo){
+        return paymentService.payForItem(paymentInfo);
     }
 
 
