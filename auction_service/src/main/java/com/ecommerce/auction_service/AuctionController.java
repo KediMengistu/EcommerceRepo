@@ -1,5 +1,6 @@
 package com.ecommerce.auction_service;
 
+import com.ecommerce.auction_service.Bid.Bid;
 import com.ecommerce.auction_service.IncomingRequestObjectBodies.CatalogAndTimeRequestBody;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -26,6 +27,11 @@ public class AuctionController {
         return auctionService.getAllAuctions();
     }
 
+    @DeleteMapping("/removeauction")
+    public void deleteAuction(@RequestParam int auctionid){
+        auctionService.deleteAuction(auctionid);
+    }
+
     @PostMapping("/bid")
     public boolean bid(@RequestParam String bidderusername,
                        @RequestParam int auctioneditemid,
@@ -33,4 +39,13 @@ public class AuctionController {
         return auctionService.bid(bidderusername, auctioneditemid, bid);
     }
 
+    @GetMapping("/allbids")
+    public List<Bid> getAllBids(){
+        return auctionService.getAllBids();
+    }
+
+    @GetMapping("/id_allbids")
+    public List<Bid> getAllBidsById(@RequestParam int auctionid){
+        return auctionService.getAllBidsById(auctionid);
+    }
 }

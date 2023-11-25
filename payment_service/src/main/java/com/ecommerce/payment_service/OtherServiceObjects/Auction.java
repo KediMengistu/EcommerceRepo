@@ -1,5 +1,6 @@
 package com.ecommerce.payment_service.OtherServiceObjects;
 
+import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
@@ -19,11 +20,13 @@ public class Auction {
     private LocalTime nextdecrementtime;
     private LocalDate nextdecrementdate;
     private LocalTime decrementinterval;
+    private double dutchfinalprice;
+    private boolean expired;
 
     public Auction() {
     }
 
-    public Auction(int auctioneditemid, double startprice, String auctiontype, double highestbid, int highestbidderid, LocalDate startdate, LocalTime starttime, LocalTime duration, LocalTime endtime, LocalDate enddate, double decrementvalue, LocalTime nextdecrementtime, LocalDate nextdecrementdate, LocalTime decrementinterval) {
+    public Auction(int auctioneditemid, double startprice, String auctiontype, double highestbid, int highestbidderid, LocalDate startdate, LocalTime starttime, LocalTime duration, LocalTime endtime, LocalDate enddate, double decrementvalue, LocalTime nextdecrementtime, LocalDate nextdecrementdate, LocalTime decrementinterval, double dutchfinalprice, boolean expired) {
         this.auctioneditemid = auctioneditemid;
         this.startprice = startprice;
         this.auctiontype = auctiontype;
@@ -38,6 +41,8 @@ public class Auction {
         this.nextdecrementtime = nextdecrementtime;
         this.nextdecrementdate = nextdecrementdate;
         this.decrementinterval = decrementinterval;
+        this.dutchfinalprice = dutchfinalprice;
+        this.expired = expired;
     }
 
     public int getAuctionid() {
@@ -158,5 +163,21 @@ public class Auction {
 
     public void setDecrementinterval(LocalTime decrementinterval) {
         this.decrementinterval = decrementinterval;
+    }
+
+    public double getDutchfinalprice() {
+        return dutchfinalprice;
+    }
+
+    public void setDutchfinalprice(double dutchfinalprice) {
+        this.dutchfinalprice = dutchfinalprice;
+    }
+
+    public boolean isExpired() {
+        return expired;
+    }
+
+    public void setExpired(boolean expired) {
+        this.expired = expired;
     }
 }

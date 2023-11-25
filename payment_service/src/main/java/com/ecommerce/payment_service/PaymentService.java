@@ -1,11 +1,14 @@
 package com.ecommerce.payment_service;
 
+import com.ecommerce.payment_service.Client.AuctionClient;
 import com.ecommerce.payment_service.Client.UserClient;
 import com.ecommerce.payment_service.IncomingRequestObjectBodies.CatalogAndAuctionRequestBody;
 import com.ecommerce.payment_service.IncomingRequestObjectBodies.PaymentInfo;
 import com.ecommerce.payment_service.OtherServiceObjects.Auction;
 import com.ecommerce.payment_service.OtherServiceObjects.Catalog;
 import com.ecommerce.payment_service.OtherServiceObjects.User;
+import com.ecommerce.payment_service.Receipt.Receipt;
+import com.ecommerce.payment_service.Receipt.ReceiptRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,20 +20,24 @@ import java.util.Optional;
 public class PaymentService {
 
     private final PaymentRepository paymentRepository;
+    private final ReceiptRepository receiptRepository;
     private final UserClient userclient;
+    private final AuctionClient auctionclient;
 
     @Autowired
-    public PaymentService(PaymentRepository paymentRepository, UserClient userclient) {
+    public PaymentService(PaymentRepository paymentRepository, ReceiptRepository receiptRepository, UserClient userclient, AuctionClient auctionclient) {
         this.paymentRepository = paymentRepository;
+        this.receiptRepository = receiptRepository;
         this.userclient = userclient;
+        this.auctionclient = auctionclient;
     }
 
-    //creates payment info
+    //creates receipt info.
     public void load(CatalogAndAuctionRequestBody catauction) {
         //local fields.
         Catalog cat;
         Auction auction;
-        Payment pay;
+        Receipt receipt;
         double totalcost;
 
         //extract and save catalog and auction information for item being paid for.
@@ -38,64 +45,64 @@ public class PaymentService {
         auction = catauction.getAuction();
 
         //need to first check if the auction has had any bids; if not that means the highestbidderid = 0
-        //that means no user has made a bid for the auctioned item and so no payment info is generated
-        //for that auction - essentially we are filtering for and storing only payments for auctions that have bids.
+        //that means no user has made a bid for the auctioned item and so no receipt is generated
+        //for that auction - essentially we are filtering for and storing only auctions that have bids.
         if(auction.getHighestbidderid()==0){
             return;
         }
         //there is a bidder for the ended auction and so payment can be generated for that auction.
         else{
-            //need to check if there arent any existing payment entries for the same auction.
-            //if there is then payment entry will not be created.
-            if(!paymentRepository.findBypaidauctionid(auction.getAuctionid()).isEmpty()){
+            //need to check if there arent any existing receipt entries for the same auction.
+            //if there is then receipt will not be created.
+            if(!receiptRepository.findByauctionid(auction.getAuctionid()).isEmpty()){
                 return;
             }
             else{
-                //create and set parameters for payment obj to be stored.
-                pay = new Payment();
+                //create and set parameters for receipt obj to be stored.
+                receipt = new Receipt();
                 //id for paid auction derived from auction table.
-                pay.setPaidauctionid(auction.getAuctionid());
+                receipt.setAuctionid(auction.getAuctionid());
                 //id for paid item derived from auction table.
-                pay.setPaiditemid(auction.getAuctioneditemid());
+                receipt.setItemid(auction.getAuctioneditemid());
                 //name for paid item derived from catalog table.
-                pay.setPaiditemname(cat.getItemname());
+                receipt.setItemname(cat.getItemname());
                 //description for paid item derived from catalog table.
-                pay.setPaiditemdescription(cat.getItemdescription());
+                receipt.setItemdescription(cat.getItemdescription());
                 //seller for paid item derived from catalog table.
-                pay.setSellerid(cat.getSellerid());
+                receipt.setSellerid(cat.getSellerid());
                 //id for auction winner derived from auction table.
-                pay.setPayerid(auction.getHighestbidderid());
+                receipt.setPayerid(auction.getHighestbidderid());
                 //style of pay for paid item is derived from auction table.
-                pay.setPaymentstyle(auction.getAuctiontype());
+                receipt.setAuctionstyle(auction.getAuctiontype());
                 //submitted winning bid derived from auction table.
-                pay.setSubmittedbid(auction.getHighestbid());
+                receipt.setSubmittedbid(auction.getHighestbid());
                 //shipping price for paid item derived from catalog table.
-                pay.setShippingprice(cat.getShippingprice());
+                receipt.setShippingprice(cat.getShippingprice());
                 //expedited cost for paid item derived from catalog table.
-                pay.setExpeditedcost(cat.getExpeditedcost());
+                receipt.setExpeditedcost(cat.getExpeditedcost());
 
                 //obtaining default total.
                 //default includes no expedited shipping
                 totalcost = cat.getShippingprice() + auction.getHighestbid();
                 totalcost = Math.round(totalcost * 100.0)/100.0;
-                pay.setDefaulttotal(totalcost);
+                receipt.setDefaulttotal(totalcost);
 
                 //save payment in payment table.
-                paymentRepository.save(pay);
+                receiptRepository.save(receipt);
             }
         }
     }
 
-    //provides a list of all the payments.
-    List<Payment> getAllPaymentInfo(){
-        return paymentRepository.findAll();
+    public List<Receipt> getAllReceipts() {
+        return receiptRepository.findAll();
     }
 
     //used to pay for item that was won.
     public boolean payForItem(PaymentInfo paymentInfo) {
         //local fields.
         User user;
-        Optional<Payment> opPay;
+        Optional<Receipt> opReceipt;
+        Receipt receipt;
         Payment pay;
         boolean payInfoIsValid = false;
 
@@ -108,33 +115,43 @@ public class PaymentService {
         }
         //user does exist, so can potentially pay for item.
         else{
-            //extract payment entry from unique paidauctionid.
-            opPay = paymentRepository.findBypaidauctionid(paymentInfo.getPaidauctionid());
+            //extract receipt entry from unique auctionid.
+            opReceipt = receiptRepository.findByauctionid(paymentInfo.getPaidauctionid());
 
-            //there does not exist a payment entry corresponding to the user with input username.
-            if(opPay.isEmpty()){
+            //there does not exist a receipt entry corresponding to the auction with auctionid.
+            if(opReceipt.isEmpty()){
                 return false;
             }
-            //payment entry exists with the unique paidauctionid.
+            //receipt entry exists with the unique auctionid.
             else{
-                //save payment in placeholder.
-                pay = opPay.get();
+                //save receipt in placeholder.
+                receipt = opReceipt.get();
 
-                //check to see if the user corresponds to the payment with paidauctionid.
-                //the user will be confirmed as the registered payer/bid winner.
-                if(user.getUserid()==pay.getPayerid()){
-                    //update payment information if all is valid.
-                    payInfoIsValid = checkPayInfo(paymentInfo.getCardnum(), paymentInfo.getCardfname(), paymentInfo.getCardlname(), paymentInfo.getExpdate(), paymentInfo.getSecuritycode());
-                    if(payInfoIsValid) {
-                        pay.setUsercardnumber(paymentInfo.getCardnum());
-                        pay.setUsercardfname(paymentInfo.getCardfname());
-                        pay.setUsercardlname(paymentInfo.getCardlname());
-                        pay.setUsercardexpdate(paymentInfo.getExpdate());
-                        pay.setUsercardsecuritycode(paymentInfo.getSecuritycode());
-                        paymentRepository.save(pay);
-                        return true;
-                    }
+                //checking to see if there doesnt already exist a payment corresponding to the receipt.
+                if(!paymentRepository.findByreceiptid(receipt.getReceiptid()).isEmpty()) {
                     return false;
+                }
+                else{
+                    //check to see if the user corresponds to the receipt with auctionid.
+                    //the user will be confirmed as the registered payer/bid winner.
+                    if(user.getUserid()==receipt.getPayerid()){
+                        //create payment information if all is valid.
+                        payInfoIsValid = checkPayInfo(paymentInfo.getCardnum(), paymentInfo.getCardfname(), paymentInfo.getCardlname(), paymentInfo.getExpdate(), paymentInfo.getSecuritycode());
+                        if(payInfoIsValid) {
+                            pay = new Payment();
+                            pay.setUsercardnumber(paymentInfo.getCardnum());
+                            pay.setUsercardfname(paymentInfo.getCardfname());
+                            pay.setUsercardlname(paymentInfo.getCardlname());
+                            pay.setUsercardexpdate(paymentInfo.getExpdate());
+                            pay.setUsercardsecuritycode(paymentInfo.getSecuritycode());
+                            pay.setReceiptid(receipt.getReceiptid());
+                            paymentRepository.save(pay);
+
+                            //once payment for auction is confirmed, auction can finally be removed.
+                            auctionclient.deleteAuction(receipt.getAuctionid());
+                            return true;
+                        }
+                    }
                 }
                 return false;
             }
@@ -158,5 +175,10 @@ public class PaymentService {
             return false;
         }
         return true;
+    }
+
+    //provides a list of all the payments.
+    List<Payment> getAllPaymentInfo(){
+        return paymentRepository.findAll();
     }
 }

@@ -9,5 +9,5 @@ import org.springframework.web.bind.annotation.RequestBody;
 public interface PaymentClient {
 
     @PostMapping("/load")
-    void loadPayInfoFromAuctionEnd(@RequestBody CatalogAndAuctionRequestBody catauction);
+    void loadPayInfoFromAuctionEndReciept(@RequestBody CatalogAndAuctionRequestBody catauction);
 }

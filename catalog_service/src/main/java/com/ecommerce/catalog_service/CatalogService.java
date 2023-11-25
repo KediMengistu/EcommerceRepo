@@ -179,11 +179,11 @@ public class CatalogService {
             return false;
         }
         //catalog startprice check
-        //must be non-negative and at most 2 decimal places long
+        //must be positve and at most 2 decimal places long
         double catalogstartprice = catalog.getStartprice();
         String priceStr = String.format("%.2f", catalogstartprice);
         String regex = "\\d+\\.\\d{2}";
-        if(catalogstartprice < 0 || !priceStr.matches(regex)){
+        if(catalogstartprice <= 0 || !priceStr.matches(regex)){
             return false;
         }
         //catalog duration check

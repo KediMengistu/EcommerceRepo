@@ -2,6 +2,7 @@ package com.ecommerce.payment_service;
 
 import com.ecommerce.payment_service.IncomingRequestObjectBodies.CatalogAndAuctionRequestBody;
 import com.ecommerce.payment_service.IncomingRequestObjectBodies.PaymentInfo;
+import com.ecommerce.payment_service.Receipt.Receipt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,21 +19,27 @@ public class PaymentController {
         this.paymentService = paymentService;
     }
 
+    //creates the receipt for the ended auction.
     @PostMapping("/load")
-    void loadPayInfoFromAuctionEnd(@RequestBody CatalogAndAuctionRequestBody catauction){
+    void loadPayInfoFromAuctionEndReciept(@RequestBody CatalogAndAuctionRequestBody catauction){
          paymentService.load(catauction);
     }
 
-    @GetMapping("/allpayment")
-    List<Payment> getAllPayment(){
-        return paymentService.getAllPaymentInfo();
+    //retuns list of receipt info for auctions that have been noted as expired.
+    @GetMapping("/allauctionreceipt")
+    List<Receipt> getAllReceipts(){
+        return paymentService.getAllReceipts();
     }
 
-    //updates currently existing payment info with input parameters.
-    @PutMapping("/insertpaymentinfo")
+    //creates payment info by initially verifying validity with receipts.
+    @PostMapping("/insertpaymentinfo")
     boolean payForAuctionedOffItem(@RequestBody PaymentInfo paymentInfo){
         return paymentService.payForItem(paymentInfo);
     }
 
-
+    //returns list of payment for all auctions that have been paid for.
+    @GetMapping("/allpayment")
+    List<Payment> getAllPayment(){
+        return paymentService.getAllPaymentInfo();
+    }
 }

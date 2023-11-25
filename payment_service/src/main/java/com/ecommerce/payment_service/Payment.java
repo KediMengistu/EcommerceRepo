@@ -11,48 +11,28 @@ public class Payment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int paymentid;
     @Column(nullable = false, unique = true)
-    private int paidauctionid;
-    @Column(nullable = false, unique = true)
-    private int paiditemid;
+    private int receiptid;
     @Column(nullable = false)
-    private String paiditemname;
-    @Column(nullable = false)
-    private String paiditemdescription;
-    @Column(nullable = false)
-    private int sellerid;
-    @Column(nullable = false)
-    private int payerid;
-    @Column(nullable = false)
-    private String paymentstyle;
-    @Column(nullable = false)
-    private double submittedbid;
-    @Column(nullable = false)
-    private double shippingprice;
-    @Column(nullable = false)
-    private double expeditedcost;
-    @Column(nullable = false)
-    private double defaulttotal;
     private int usercardnumber;
+    @Column(nullable = false)
     private String usercardfname;
+    @Column(nullable = false)
     private String usercardlname;
+    @Column(nullable = false)
     private LocalDate usercardexpdate;
+    @Column(nullable = false)
     private int usercardsecuritycode;
 
     public Payment() {
     }
 
-    public Payment(int paidauctionid, int paiditemid, String paiditemname, String paiditemdescription, int sellerid, int payerid, String paymentstyle, double submittedbid, double shippingprice, double expeditedcost, double defaulttotal) {
-        this.paidauctionid = paidauctionid;
-        this.paiditemid = paiditemid;
-        this.paiditemname = paiditemname;
-        this.paiditemdescription = paiditemdescription;
-        this.sellerid = sellerid;
-        this.payerid = payerid;
-        this.paymentstyle = paymentstyle;
-        this.submittedbid = submittedbid;
-        this.shippingprice = shippingprice;
-        this.expeditedcost = expeditedcost;
-        this.defaulttotal = defaulttotal;
+    public Payment(int receiptid, int usercardnumber, String usercardfname, String usercardlname, LocalDate usercardexpdate, int usercardsecuritycode) {
+        this.receiptid = receiptid;
+        this.usercardnumber = usercardnumber;
+        this.usercardfname = usercardfname;
+        this.usercardlname = usercardlname;
+        this.usercardexpdate = usercardexpdate;
+        this.usercardsecuritycode = usercardsecuritycode;
     }
 
     public int getPaymentid() {
@@ -63,92 +43,12 @@ public class Payment {
         this.paymentid = paymentid;
     }
 
-    public int getPaidauctionid() {
-        return paidauctionid;
+    public int getReceiptid() {
+        return receiptid;
     }
 
-    public void setPaidauctionid(int paidauctionid) {
-        this.paidauctionid = paidauctionid;
-    }
-
-    public int getPaiditemid() {
-        return paiditemid;
-    }
-
-    public void setPaiditemid(int paiditemid) {
-        this.paiditemid = paiditemid;
-    }
-
-    public String getPaiditemname() {
-        return paiditemname;
-    }
-
-    public void setPaiditemname(String paiditemname) {
-        this.paiditemname = paiditemname;
-    }
-
-    public String getPaiditemdescription() {
-        return paiditemdescription;
-    }
-
-    public void setPaiditemdescription(String paiditemdescription) {
-        this.paiditemdescription = paiditemdescription;
-    }
-
-    public int getSellerid() {
-        return sellerid;
-    }
-
-    public void setSellerid(int sellerid) {
-        this.sellerid = sellerid;
-    }
-
-    public int getPayerid() {
-        return payerid;
-    }
-
-    public void setPayerid(int payerid) {
-        this.payerid = payerid;
-    }
-
-    public String getPaymentstyle() {
-        return paymentstyle;
-    }
-
-    public void setPaymentstyle(String paymentstyle) {
-        this.paymentstyle = paymentstyle;
-    }
-
-    public double getSubmittedbid() {
-        return submittedbid;
-    }
-
-    public void setSubmittedbid(double submittedbid) {
-        this.submittedbid = submittedbid;
-    }
-
-    public double getShippingprice() {
-        return shippingprice;
-    }
-
-    public void setShippingprice(double shippingprice) {
-        this.shippingprice = shippingprice;
-    }
-
-    public double getExpeditedcost() {
-        return expeditedcost;
-    }
-
-    public void setExpeditedcost(double expeditedcost) {
-        this.expeditedcost = expeditedcost;
-    }
-
-    public double getDefaulttotal() {
-        return defaulttotal;
-    }
-
-    public void setDefaulttotal(double defaulttotal) {
-        this.defaulttotal = defaulttotal;
+    public void setReceiptid(int receiptid) {
+        this.receiptid = receiptid;
     }
 
     public int getUsercardnumber() {
