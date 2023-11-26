@@ -30,13 +30,13 @@ public class UserController {
     public List<User> getAllUsers(){
         return userService.getAllUsers();
     }
-    // ...
 
 @GetMapping("/getallusers")
 public String getAllUsers(Model model){
     List<User> users = userService.getAllUsers();
     model.addAttribute("users", users);
-    return "userList"; // Thymeleaf template name (userList.html)
+    return "userList"; 
+    // Thymeleaf template name (userList.html)
 }
 
 // ...
