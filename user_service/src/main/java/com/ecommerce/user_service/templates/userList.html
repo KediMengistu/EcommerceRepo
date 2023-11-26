@@ -3,6 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <title>User List</title>
+    <!-- Include jQuery from CDN -->
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <style>
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+   }
+   header {
+    background: #50b3a2;
+    color: #ffffff;
+    padding: 1em 0;
+    text-align: center;
+   }
+   footer {
+    background: #50b3a2;
+    color: #ffffff;
+    text-align: center;
+    padding: 1em 0;
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+   }
+   form {
+    background: #ffffff;
+    margin: 2em 0;
+    padding: 2em;
+    border-radius: 8px;
+    box-shadow: 0px 0px 15px 1px rgba(0, 0, 0, 0.2);
+   }
+   label {
+    display: block;
+    margin: 0 0 1em 0;
+   }
+   input {
+    width: 100%;
+    padding: 8px;
+    box-sizing: border-box;
+    margin-bottom: 1em;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+   }
+   input[type="submit"] {
+    cursor: pointer;
+    background-color: #50b3a2;
+    color: #ffffff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+   }
+   input[type="submit"]:hover {
+    background-color: #4a9188;
+   }
+   table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 2em 0;
+   }
+   th, td {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+   }
+   th {
+    background-color: #50b3a2;
+    color: white;
+   }    </style>
 </head>
 <body>
 
@@ -20,24 +88,46 @@
         <th>City</th>
         <th>Country</th>
         <th>Postal Code</th>
-        <!-- Add other columns as needed -->
     </tr>
     </thead>
-    <tbody>
-    <tr th:each="user : ${users}">
-        <td th:text="${user.userid}"></td>
-        <td th:text="${user.username}"></td>
-        <td th:text="${user.firstname}"></td>
-        <td th:text="${user.lastname}"></td>
-        <td th:text="${user.streetname}"></td>
-        <td th:text="${user.streetnumber}"></td>
-        <td th:text="${user.city}"></td>
-        <td th:text="${user.country}"></td>
-        <td th:text="${user.postalcode}"></td>
-        <!-- Add other columns as needed -->
-    </tr>
+    <tbody id="userTableBody">
     </tbody>
 </table>
+
+<script>
+    $(document).ready(function() {
+        $.ajax({
+            url: '/ecommerce/user/getallusers',
+            type: 'GET',
+            dataType: 'json',
+            success: function(users) {
+                var userTableBody = $('#userTableBody');
+
+                userTableBody.empty();
+
+                // Populate table with user data
+                $.each(users, function(index, user) {
+                    var row = '<tr>' +
+                        '<td>' + user.userid + '</td>' +
+                        '<td>' + user.username + '</td>' +
+                        '<td>' + user.firstname + '</td>' +
+                        '<td>' + user.lastname + '</td>' +
+                        '<td>' + user.streetname + '</td>' +
+                        '<td>' + user.streetnumber + '</td>' +
+                        '<td>' + user.city + '</td>' +
+                        '<td>' + user.country + '</td>' +
+                        '<td>' + user.postalcode + '</td>' +
+                        '</tr>';
+
+                    userTableBody.append(row);
+                });
+            },
+            error: function() {
+                console.error('Error fetching user data');
+            }
+        });
+    });
+</script>
 
 </body>
 </html>

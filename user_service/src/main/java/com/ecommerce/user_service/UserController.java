@@ -30,6 +30,7 @@ public class UserController {
     public List<User> getAllUsers(){
         return userService.getAllUsers();
     }
+    // ...
 
 @GetMapping("/getallusers")
 public String getAllUsers(Model model){

@@ -23,8 +23,8 @@ public class UserControllerUI {
     public String getAllUsers(Model model) {
         List<User> users = userService.getAllUsers();
         model.addAttribute("users", users);
-        return "userList"; // Thymeleaf template name (userList.html)
+        return "userList"; 
+        // Thymeleaf template name (userList.html)
     }
 
-    // Add other UI-related methods as needed
 }
