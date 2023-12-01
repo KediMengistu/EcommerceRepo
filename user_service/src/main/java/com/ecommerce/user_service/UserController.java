@@ -1,6 +1,7 @@
 package com.ecommerce.user_service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -29,6 +30,17 @@ public class UserController {
     public List<User> getAllUsers(){
         return userService.getAllUsers();
     }
+
+@GetMapping("/getallusers")
+public String getAllUsers(Model model){
+    List<User> users = userService.getAllUsers();
+    model.addAttribute("users", users);
+    return "userList"; 
+    // Thymeleaf template name (userList.html)
+}
+
+// ...
+
 
     @GetMapping("/id_getuser")
     public User getUserFromId(@RequestParam int id){
