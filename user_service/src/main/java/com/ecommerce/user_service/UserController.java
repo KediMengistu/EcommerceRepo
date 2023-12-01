@@ -26,10 +26,11 @@ public class UserController {
         return userService.signIn(username, password);
     }
 
-    @GetMapping("/getallusers")
-    public List<User> getAllUsers(){
-        return userService.getAllUsers();
-    }
+   // @GetMapping("/getallusers")
+   // public List<User> getAllUsers(){
+     //   return userService.getAllUsers();
+   // }
+    // ...
 
 @GetMapping("/getallusers")
 public String getAllUsers(Model model){
