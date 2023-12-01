@@ -11,7 +11,7 @@
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js"></script>
   <!-- Include Thymeleaf JavaScript in case you're using th:action in the form -->
   <script th:src="@{/webjars/thymeleaf/3.0.12.RELEASE/thymeleaf.js}"></script>
-  <script src="/postrequest.js"></script>
+  <!--<script src="/postrequest.js"></script>-->
   <script src="/getrequest.js"></script>
 </head>
 <body>
@@ -71,11 +71,95 @@
   <div class="col-sm-7" style="margin: 20px 0px 20px 0px">
     <button id="getAllItems" type="button" class="btn btn-primary" th:onclick="getAllItems()">Get All Items</button>
     <div id="getResultDiv" style="padding: 20px 10px 20px 50px">
-      <ul class="list-group">
-        <!-- Thymeleaf iteration for displaying items -->
-      </ul>
     </div>
   </div>
 </div>
+<script>
+  $("#searchform").submit(function (event) {
+    // Prevent the form from submitting via the browser.
+    event.preventDefault();
+    ajaxPost();
+  });
+
+  function ajaxPost() {
+
+    // PREPARE FORM DATA
+    var formData = {
+      sellerid:$("#sellerid").val(),
+      itemname: $("#itemname").val(),
+      itemdescription: $("#itemdescription").val(),
+      auctiontype: $("#auctiontype").val(),
+      startprice: $("#startprice").val(),
+      shippingprice: $("#shippingprice").val(),
+      expeditedcost: $("#expeditedcost").val(),
+      duration: $("#duration").val(),
+      enddate: $("#enddate").val()
+    }
+
+    // DO POST
+    $.ajax({
+      type: "POST",
+      contentType: "application/json",
+      url: "http://localhost:8091/ecommerce/catalog/sell?sellerusername=user1",
+      data: JSON.stringify(formData),
+      dataType: 'json',
+      success: function (result) {
+        if (result.status == "success") {
+          $("#postResultDiv").html(
+                  "" + result.data.itemname
+                  + "Post Successfully! <br>"
+                  + "---> Congrats !!" + "</p>");
+        } else {
+          $("#postResultDiv").html("<strong>Error</strong>");
+        }
+        console.log(result);
+      },
+      error: function (e) {
+        alert("Error!")
+        console.log("ERROR: ", e);
+      }
+    });
+
+  }
+</script>
+<script>
+  $("#getAllItems").click(function (event) {
+    ajaxGet();
+  });
+
+  function ajaxGet() {
+    $.ajax({
+      type: "GET",
+      url: "http://localhost:8091/ecommerce/catalog/entirecatalog",
+      success: function (result) {
+        if (result && result.status && result.status === "success") {
+          $('#getResultDiv').empty();
+          $.each(result.data, function (i, catalog) {
+            var itemInfo = "Item ID: " + catalog.itemid +
+                    ", Seller ID: " + catalog.sellerid +
+                    ", Item Name: " + catalog.itemname +
+                    ", Item Description: " + catalog.itemdescription +
+                    ", Auction Type: " + catalog.auctiontype +
+                    ", Start Price: " + catalog.startprice +
+                    ", Shipping Price: " + catalog.shippingprice +
+                    ", Expedited Cost: " + catalog.expeditedcost +
+                    ", Duration: " + catalog.duration +
+                    ", End Date: " + catalog.enddate + "<br>";
+
+            $('#getResultDiv').append(itemInfo);
+          });
+          console.log("Success: ", result);
+        } else {
+          $("#getResultDiv").html("<strong>Error</strong>");
+          console.log("Fail: ", result);
+        }
+      },
+      error: function (e) {
+        $("#getResultDiv").html("<strong>Error</strong>");
+        console.log("ERROR: ", e);
+      }
+    });
+  }
+</script>
 </body>
 </html>
