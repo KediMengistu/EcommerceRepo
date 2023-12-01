@@ -445,14 +445,12 @@ public class AuctionService {
             catitem = catalogclient.searchCatalogById(auction.getAuctioneditemid());
             //finding auctions which have expired - add and remove appropriate information.
             if (auction.getEnddate().isBefore(LocalDate.now()) ||
-               (auction.getEnddate().isEqual(LocalDate.now()) &&
-                auction.getEndtime().equals(LocalTime.now().truncatedTo(ChronoUnit.SECONDS))) ||
-               (auction.getEnddate().isEqual(LocalDate.now()) &&
-                auction.getEndtime().isBefore(LocalTime.now().truncatedTo(ChronoUnit.SECONDS)))) {
+                    (auction.getEnddate().isEqual(LocalDate.now()) &&
+                            auction.getEndtime().equals(LocalTime.now().truncatedTo(ChronoUnit.SECONDS))) ||
+                    (auction.getEnddate().isEqual(LocalDate.now()) &&
+                            auction.getEndtime().isBefore(LocalTime.now().truncatedTo(ChronoUnit.SECONDS)))) {
                 //remove from catalog.
                 catalogclient.removeFromCatalogById(auction.getAuctioneditemid());
-                //auction has expired.
-                auction.setExpired(true);
                 //load receipt information in the case that the expired auction has bids.
                 //when highest bidderid is 0, no one has put in a bid.
                 //do not need to load receipt info - can just delete auction straight away.
@@ -465,8 +463,12 @@ public class AuctionService {
                 else{
                     catauction = new CatalogAndAuctionRequestBody(catitem, auction);
                     paymentclient.loadPayInfoFromAuctionEndReciept(catauction);
-                    //save updated auction into table.
-                    auctionRepository.save(auction);
+                    //save updated auction into table - only in the first instance
+                    //when the auction's expired flag has been set to be removed.
+                    if(auction.isExpired()==false){
+                        auction.setExpired(true);
+                        auctionRepository.save(auction);
+                    }
                 }
             }
         }

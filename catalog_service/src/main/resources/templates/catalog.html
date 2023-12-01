@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <title>Item Catalog</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css" />
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js"></script>
+  <!-- Include Thymeleaf JavaScript in case you're using th:action in the form -->
+  <script th:src="@{/webjars/thymeleaf/3.0.12.RELEASE/thymeleaf.js}"></script>
+  <script src="/postrequest.js"></script>
+  <script src="/getrequest.js"></script>
+</head>
+<body>
+<div id="postResultDiv" align="center"></div>
+<div class="container">
+  <h2>Catalog</h2>
+  <form id="searchform" th:action="@{/search}" method="post">
+    <div class="form-group">
+      <label for="sellerid">Seller Id:</label> <input type="text"
+                                                      class="form-control" id="sellerid" placeholder="Enter Seller Id"
+                                                      name="sellerid">
+    </div>
+    <div class="form-group">
+      <label for="itemname">Item Name:</label> <input type="text"
+                                                      class="form-control" id="itemname" placeholder="Enter Item Name"
+                                                      name="itemname">
+    </div>
+    <div class="form-group">
+      <label for="itemdescription">Item Description:</label> <input type="text"
+                                                      class="form-control" id="itemdescription" placeholder="Enter Item Description"
+                                                      name="itemdescription">
+    </div>
+    <div class="form-group">
+      <label for="auctiontype">Auction Type:</label> <input type="text"
+                                                      class="form-control" id="auctiontype" placeholder="Enter Auction Type"
+                                                      name="auctiontype">
+    </div>
+    <div class="form-group">
+      <label for="startprice">Start Price:</label> <input type="text"
+                                                      class="form-control" id="startprice" placeholder="Enter Start Price"
+                                                      name="startprice">
+    </div>
+    <div class="form-group">
+      <label for="shippingprice">Shipping Price:</label> <input type="text"
+                                                      class="form-control" id="shippingprice" placeholder="Enter Shipping Price"
+                                                      name="shippingprice">
+    </div>
+    <div class="form-group">
+      <label for="expeditedcost">Expedited Cost:</label> <input type="text"
+                                                      class="form-control" id="expeditedcost" placeholder="Enter Expedited Cost"
+                                                      name="expeditedcost">
+    </div>
+    <div class="form-group">
+      <label for="duration">Duration:</label> <input type="text"
+                                                      class="form-control" id="duration" placeholder="Enter Duration"
+                                                      name="duration">
+    </div>
+    <div class="form-group">
+      <label for="enddate">End date:</label> <input type="text"
+                                                      class="form-control" id="enddate" placeholder="Enter End date"
+                                                      name="enddate">
+    </div>
+
+    <button type="submit" class="btn btn-primary">Submit</button>
+  </form>
+  <br />
+  <div class="col-sm-7" style="margin: 20px 0px 20px 0px">
+    <button id="getAllItems" type="button" class="btn btn-primary" th:onclick="getAllItems()">Get All Items</button>
+    <div id="getResultDiv" style="padding: 20px 10px 20px 50px">
+      <ul class="list-group">
+        <!-- Thymeleaf iteration for displaying items -->
+      </ul>
+    </div>
+  </div>
+</div>
+</body>
+</html>
