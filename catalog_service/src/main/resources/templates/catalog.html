@@ -11,8 +11,6 @@
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js"></script>
   <!-- Include Thymeleaf JavaScript in case you're using th:action in the form -->
   <script th:src="@{/webjars/thymeleaf/3.0.12.RELEASE/thymeleaf.js}"></script>
-  <!--<script src="/postrequest.js"></script>-->
-  <script src="/getrequest.js"></script>
 </head>
 <body>
 <div id="postResultDiv" align="center"></div>
@@ -31,135 +29,125 @@
     </div>
     <div class="form-group">
       <label for="itemdescription">Item Description:</label> <input type="text"
-                                                      class="form-control" id="itemdescription" placeholder="Enter Item Description"
-                                                      name="itemdescription">
+                                                                    class="form-control" id="itemdescription" placeholder="Enter Item Description"
+                                                                    name="itemdescription">
     </div>
     <div class="form-group">
       <label for="auctiontype">Auction Type:</label> <input type="text"
-                                                      class="form-control" id="auctiontype" placeholder="Enter Auction Type"
-                                                      name="auctiontype">
+                                                            class="form-control" id="auctiontype" placeholder="Enter Auction Type"
+                                                            name="auctiontype">
     </div>
     <div class="form-group">
       <label for="startprice">Start Price:</label> <input type="text"
-                                                      class="form-control" id="startprice" placeholder="Enter Start Price"
-                                                      name="startprice">
-    </div>
-    <div class="form-group">
-      <label for="shippingprice">Shipping Price:</label> <input type="text"
-                                                      class="form-control" id="shippingprice" placeholder="Enter Shipping Price"
-                                                      name="shippingprice">
-    </div>
-    <div class="form-group">
-      <label for="expeditedcost">Expedited Cost:</label> <input type="text"
-                                                      class="form-control" id="expeditedcost" placeholder="Enter Expedited Cost"
-                                                      name="expeditedcost">
-    </div>
+                                                          class="form-control" id="startprice" placeholder="Enter Start Price"
+                                                          name="startprice">
     <div class="form-group">
       <label for="duration">Duration:</label> <input type="text"
-                                                      class="form-control" id="duration" placeholder="Enter Duration"
-                                                      name="duration">
+                                                     class="form-control" id="duration" placeholder="Enter Duration"
+                                                     name="duration">
     </div>
     <div class="form-group">
       <label for="enddate">End date:</label> <input type="text"
-                                                      class="form-control" id="enddate" placeholder="Enter End date"
-                                                      name="enddate">
+                                                    class="form-control" id="enddate" placeholder="Enter End date"
+                                                    name="enddate">
     </div>
-
     <button type="submit" class="btn btn-primary">Submit</button>
   </form>
   <br />
   <div class="col-sm-7" style="margin: 20px 0px 20px 0px">
-    <button id="getAllItems" type="button" class="btn btn-primary" th:onclick="getAllItems()">Get All Items</button>
+    <button id="getAllItems" type="button" class="btn btn-primary">Get All Items</button>
     <div id="getResultDiv" style="padding: 20px 10px 20px 50px">
+      <!-- Your table goes here -->
+      <table id="itemsTable" class="table">
+        <thead>
+        <tr>
+          <th>Item Id</th>
+          <th>Item Name</th>
+          <th>Item Description</th>
+          <th>Auction Type</th>
+          <th>Start Price</th>
+          <th>Shipping Price</th>
+          <th>Expedited Cost</th>
+          <th>Duration</th>
+          <th>Enddate</th>
+        </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
     </div>
   </div>
 </div>
 <script>
-  $("#searchform").submit(function (event) {
-    // Prevent the form from submitting via the browser.
-    event.preventDefault();
-    ajaxPost();
-  });
+  $(document).ready(function () {
+    $("#searchform").submit(function (event) {
+      event.preventDefault();
+      ajaxPost();
+    });
 
-  function ajaxPost() {
+    function ajaxPost() {
+      var formData = {
+        sellerid:$("#sellerid").val(),
+        itemname: $("#itemname").val(),
+        itemdescription: $("#itemdescription").val(),
+        auctiontype: $("#auctiontype").val(),
+        startprice: $("#startprice").val(),
+        shippingprice: $("#shippingprice").val(),
+        expeditedcost: $("#expeditedcost").val(),
+        duration: $("#duration").val(), // Assuming the input field for duration is of type text
+        enddate: $("#enddate").val()       }
 
-    // PREPARE FORM DATA
-    var formData = {
-      sellerid:$("#sellerid").val(),
-      itemname: $("#itemname").val(),
-      itemdescription: $("#itemdescription").val(),
-      auctiontype: $("#auctiontype").val(),
-      startprice: $("#startprice").val(),
-      shippingprice: $("#shippingprice").val(),
-      expeditedcost: $("#expeditedcost").val(),
-      duration: $("#duration").val(),
-      enddate: $("#enddate").val()
+      $.ajax({
+        type: "POST",
+        contentType: "application/json",
+        url: "http://localhost:8091/ecommerce/catalog/sell?sellerusername=user2",
+        data: JSON.stringify(formData),
+        dataType: 'json',
+        success: function (result) {
+          if (result.status == "success") {
+            $("#postResultDiv").html(
+                    "" + result.data.itemname + "Post Successfully! <br>" + "---> Congrats !!" + "</p>"
+            );
+          } else {
+            $("#postResultDiv").html("<strong>Error</strong>");
+          }
+          console.log(result);
+        },
+
+      });
     }
 
-    // DO POST
-    $.ajax({
-      type: "POST",
-      contentType: "application/json",
-      url: "http://localhost:8091/ecommerce/catalog/sell?sellerusername=user1",
-      data: JSON.stringify(formData),
-      dataType: 'json',
-      success: function (result) {
-        if (result.status == "success") {
-          $("#postResultDiv").html(
-                  "" + result.data.itemname
-                  + "Post Successfully! <br>"
-                  + "---> Congrats !!" + "</p>");
-        } else {
-          $("#postResultDiv").html("<strong>Error</strong>");
-        }
-        console.log(result);
-      },
-      error: function (e) {
-        alert("Error!")
-        console.log("ERROR: ", e);
-      }
+    $("#getAllItems").click(function (event) {
+      ajaxGet();
     });
 
-  }
-</script>
-<script>
-  $("#getAllItems").click(function (event) {
-    ajaxGet();
-  });
+    function ajaxGet() {
+      $.ajax({
+        url: "http://localhost:8091/ecommerce/catalog/entirecatalog",
+        type: 'GET',
+        success: function (result) {
+          var tableBody = $("#itemsTable tbody");
+          tableBody.empty(); // Clear existing rows
 
-  function ajaxGet() {
-    $.ajax({
-      type: "GET",
-      url: "http://localhost:8091/ecommerce/catalog/entirecatalog",
-      success: function (result) {
-        if (result && result.status && result.status === "success") {
-          $('#getResultDiv').empty();
-          $.each(result.data, function (i, catalog) {
-            var itemInfo = "Item ID: " + catalog.itemid +
-                    ", Seller ID: " + catalog.sellerid +
-                    ", Item Name: " + catalog.itemname +
-                    ", Item Description: " + catalog.itemdescription +
-                    ", Auction Type: " + catalog.auctiontype +
-                    ", Start Price: " + catalog.startprice +
-                    ", Shipping Price: " + catalog.shippingprice +
-                    ", Expedited Cost: " + catalog.expeditedcost +
-                    ", Duration: " + catalog.duration +
-                    ", End Date: " + catalog.enddate + "<br>";
-
-            $('#getResultDiv').append(itemInfo);
+          result.forEach(function (catalog) {
+            var row = $("<tr></tr>");
+            row.append($("<td></td>").text(catalog.itemid));
+            row.append($("<td></td>").text(catalog.itemname));
+            row.append($("<td></td>").text(catalog.itemdescription));
+            row.append($("<td></td>").text(catalog.auctiontype));
+            row.append($("<td></td>").text(catalog.startprice));
+            row.append($("<td></td>").text(catalog.shippingprice));
+            row.append($("<td></td>").text(catalog.expeditedcost));
+            row.append($("<td></td>").text(catalog.duration));
+            row.append($("<td></td>").text(catalog.enddate));
+            tableBody.append(row);
           });
-          console.log("Success: ", result);
-        } else {
-          $("#getResultDiv").html("<strong>Error</strong>");
-          console.log("Fail: ", result);
+        },
+        error: function (error) {
+          console.log(error);
         }
-      },
-      error: function (e) {
-        $("#getResultDiv").html("<strong>Error</strong>");
-        console.log("ERROR: ", e);
-      }
-    });
-  }
+      });
+    }
+  });
 </script>
 </body>
 </html>
