@@ -2,6 +2,8 @@ package com.ecommerce.user_service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,29 +17,23 @@ public class UserService {
     }
 
     //signing up.
-    public boolean signUp(User user) {
+    public List<String> signUp(User user) {
         //creating local variables.
-        boolean isValidUser;
+        List<String> result = new ArrayList<>();
 
-        //opUser may or may not contain user with the id of the user object we are trying to store.
-        Optional<User> opUser = userRepository.findById(user.getUserid());
+        //has the check information
+        result = peformUserChecks(user);
 
-        //no such user with id - sign up can be performed.
-        if (opUser.isEmpty()) {
-            isValidUser = peformUserChecks(user);
-            //confirms all other checks passed.
-            if (isValidUser == true) {
-                userRepository.save(user);
-                return true;
-            }
-            //confirms not all checks passed.
-            else {
-                return false;
-            }
+        //confirms all other checks passed.
+        if (result.isEmpty()) {
+            userRepository.save(user);
+            result.add("Successful Sign Up");
+            return result;
         }
-        //pre-existing user with id - sign up cannot be performed.
+        //confirms not all checks passed.
         else {
-            return false;
+            result.add(0, "Unsuccessful Sign Up");
+            return result;
         }
     }
 
@@ -45,7 +41,7 @@ public class UserService {
     public boolean signIn(String username, String userpassword) {
         User person = getUserFromUserName(username);
         //user does not exist.
-        if(person==null){
+        if (person == null) {
             return false;
         }
         //user does exist.
@@ -63,38 +59,38 @@ public class UserService {
     }
 
     //gets all users in user table.
-    public List<User> getAllUsers(){
+    public List<User> getAllUsers() {
         return userRepository.findAll();
     }
 
     //gets user with specific id.
     public User getUserFromId(int id) {
         //no user with id - nothing is returned
-        if(userRepository.findById(id).isEmpty()){
+        if (userRepository.findById(id).isEmpty()) {
             return null;
         }
         //user with id exists - user is returned.
-        else{
+        else {
             return userRepository.findById(id).get();
         }
     }
 
     //gets user with specific username - keep the casing in mind for JPA.
     //this is taken care of by iterating through entire user table.
-    public User getUserFromUserName(String username){
+    public User getUserFromUserName(String username) {
         //get all users
         List<User> userlist = userRepository.findAll();
         //no users.
-        if(userlist.isEmpty()){
+        if (userlist.isEmpty()) {
             return null;
         }
         //users exist.
-        else{
+        else {
             //iterate through and find user with specific username - must match casing.
-            for(User result: userlist){
+            for (User result : userlist) {
                 String name = result.getUsername();
                 //the user was found.
-                if(name.equals(username)){
+                if (name.equals(username)) {
                     return result;
                 }
             }
@@ -103,56 +99,62 @@ public class UserService {
     }
 
     //helper Method.
-    private boolean peformUserChecks(User user) {
+    private List<String> peformUserChecks(User user) {
+        //local fields
+        List<String> result = new ArrayList<>();
         //username checks
         String username = user.getUsername();
         User ref = getUserFromUserName(username);
-        if (username == null || username.isEmpty() || ref!=null) {
-            return false;
+        if (username == null || username.isEmpty() || ref != null) {
+            result.add("Username not specified or already exists.");
+        }
+
+        String password = user.getUserpassword();
+        if(password == null || password.isEmpty()){
+            result.add("Password not specified");
         }
 
         //firstname check
         String firstname = user.getFirstname();
         if (firstname == null || firstname.isEmpty()) {
-            return false;
+            result.add("First name not specified.");
         }
 
         //lastname check
         String lastname = user.getLastname();
         if (lastname == null || lastname.isEmpty()) {
-            return false;
+            result.add("Last name not specified.");
         }
 
         //streetname check
         String streetname = user.getStreetname();
         if (streetname == null || streetname.isEmpty()) {
-            return false;
+            result.add("Street name not specified.");
         }
 
         //streetnumber check
         int streetnumber = user.getStreetnumber();
         if (streetnumber < 0) {
-            return false;
+            result.add("Street number cannot be negative.");
         }
 
         //city check
         String city = user.getCity();
         if (city == null || city.isEmpty()) {
-            return false;
+            result.add("City not specified.");
         }
 
         //country check
         String country = user.getCountry();
         if (country == null || country.isEmpty()) {
-            return false;
+            result.add("Country not specified.");
         }
 
         //postalcode check
         String postalcode = user.getPostalcode();
         if (postalcode == null || postalcode.isEmpty()) {
-            return false;
+            result.add("Postal code not specified.");
         }
-
-        return true;
+        return result;
     }
 }

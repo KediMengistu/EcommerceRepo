@@ -162,10 +162,8 @@ public class AuctionService {
                                     auction.setHighestbid(bid);
                                     auction.setHighestbidderid(bidder.getUserid());
                                     auction.setExpired(true);
-                                    //remove from catalog.
-                                    catalogclient.removeFromCatalogById(auction.getAuctioneditemid());
-                                    //auction has expired.
-                                    auction.setExpired(true);
+//                                    //remove from catalog.
+//                                    catalogclient.removeFromCatalogById(auction.getAuctioneditemid());
                                     //save bid in bid table.
                                     createAndStoreBid(bid, auction, catitem.getSellerid());
                                     //load receipt information.
@@ -413,7 +411,7 @@ public class AuctionService {
     }
 
     //this will delete an auction.
-    public void deleteAuction(int auctionid) {
+    public void deleteAuctionAndCat(int auctionid) {
         //local fields.
         Optional<Auction> opAuction = auctionRepository.findById(auctionid);
         Auction auction;
@@ -421,10 +419,12 @@ public class AuctionService {
         if(opAuction.isEmpty()){
             return;
         }
-        //auction does exist; can remove it.
+        //auction does exist; can remove it; if auction exists then so does the catalog
         else{
             auction = opAuction.get();
+            catalogclient.removeFromCatalogById(auction.getAuctioneditemid());
             auctionRepository.delete(auction);
+            //remove from catalog.
         }
     }
 
@@ -445,17 +445,18 @@ public class AuctionService {
             catitem = catalogclient.searchCatalogById(auction.getAuctioneditemid());
             //finding auctions which have expired - add and remove appropriate information.
             if (auction.getEnddate().isBefore(LocalDate.now()) ||
-                    (auction.getEnddate().isEqual(LocalDate.now()) &&
-                            auction.getEndtime().equals(LocalTime.now().truncatedTo(ChronoUnit.SECONDS))) ||
-                    (auction.getEnddate().isEqual(LocalDate.now()) &&
-                            auction.getEndtime().isBefore(LocalTime.now().truncatedTo(ChronoUnit.SECONDS)))) {
-                //remove from catalog.
-                catalogclient.removeFromCatalogById(auction.getAuctioneditemid());
+               (auction.getEnddate().isEqual(LocalDate.now()) &&
+                auction.getEndtime().equals(LocalTime.now().truncatedTo(ChronoUnit.SECONDS))) ||
+               (auction.getEnddate().isEqual(LocalDate.now()) &&
+                auction.getEndtime().isBefore(LocalTime.now().truncatedTo(ChronoUnit.SECONDS)))) {
+//                //remove from catalog.
+//                catalogclient.removeFromCatalogById(auction.getAuctioneditemid());
                 //load receipt information in the case that the expired auction has bids.
                 //when highest bidderid is 0, no one has put in a bid.
                 //do not need to load receipt info - can just delete auction straight away.
                 if(auction.getHighestbidderid()==0){
-                    auctionRepository.delete(auction);
+//                    auctionRepository.delete(auction);
+                    deleteAuctionAndCat(auction.getAuctionid());
                 }
                 //load receipt information for expired auction that has been bid on and won.
                 //make sure to save auction into auction table, where these won auctions
