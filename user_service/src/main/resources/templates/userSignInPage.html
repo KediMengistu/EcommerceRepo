@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Sign In</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <style>
+        /* Additional CSS for positioning the Back to Start button */
+        #backToStartBtn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+        }
+        /* Adjust container top margin */
+        .container {
+            margin-top: 60px;
+        }
+    </style>
+</head>
+<body>
+<div class="container mt-3">
+    <button id="backToStartBtn" class="btn btn-secondary mb-3">Back to Start</button>
+    <h1>Sign In</h1>
+    <form id="signInForm">
+        <input type="text" name="username" placeholder="Username" required><br>
+        <input type="password" name="password" placeholder="Password" required><br>
+        <button type="button" id="confirmSignInBtn" class="btn btn-primary">Confirm Sign In</button>
+    </form>
+    <div id="responseTable"></div>
+</div>
+
+<!-- jQuery and AJAX script at the bottom -->
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script>
+    $(document).ready(function() {
+        // Event handler for the Back to Start button
+        $('#backToStartBtn').click(function() {
+            window.location.href = 'http://localhost:8222/ecommerce/user/userUI/userStartPage';
+        });
+
+        $('#confirmSignInBtn').click(function() {
+            var usernameVar = $('#signInForm input[name="username"]').val();
+            var passwordVar = $('#signInForm input[name="password"]').val();
+            $.ajax({
+                url: '/ecommerce/user/signin' + '?username=' + encodeURIComponent(usernameVar) + '&password=' + encodeURIComponent(passwordVar),
+                type: 'GET',
+                success: function(response) {
+                    // Clear any previous dynamic content
+                    $('#responseTable').empty();
+
+                    // Create a table with the response
+                    var table = $('<table>').addClass('table');
+                    var headerRow = $('<tr>');
+
+                    // Append the table to the responseTable div
+                    $('#responseTable').html(table);
+
+                    if (response === true) {
+                        // For successful sign in, hide the form and show additional buttons
+                        $('#signInForm, #confirmSignInBtn, #backToStartBtn').hide();
+
+                        var proceedButton = $('<button>')
+                            .addClass('btn btn-success mt-3')
+                            .text('Proceed to Catalog')
+                            .click(function() {
+                                //window.location.href = '/catalog';
+                            });
+
+                        var signOutButton = $('<button>')
+                            .addClass('btn btn-danger mt-3')
+                            .text('Sign Out')
+                            .click(function() {
+                                window.location.href = 'http://localhost:8222/ecommerce/user/userUI/userStartPage';
+                            });
+
+                        var disclaimer = $('<div>')
+                            .addClass('text-center mt-2')
+                            .text('Clicking on Sign Out will return you back to the Start Page');
+
+                        headerRow.append($('<th>').text('Successful Sign In'));
+                        table.append(headerRow);
+
+                        // Append the additional buttons below the table
+                        $('#responseTable').append(proceedButton, signOutButton, disclaimer);
+                    } else {
+                        // Unsuccessful Sign In
+                        headerRow.append($('<th>').text('Unsuccessful Sign In'));
+                        table.append(headerRow);
+
+                        // Show error message
+                        var errorRow = $('<tr>').append($('<td>').text('Incorrect username or password.'));
+                        table.append(errorRow);
+                    }
+                },
+                error: function() {
+                    alert('Error during sign in.');
+                }
+            });
+        });
+    });
+</script>
+</body>
+</html>

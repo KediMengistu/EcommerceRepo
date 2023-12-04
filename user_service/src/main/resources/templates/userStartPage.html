@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>User Start Page</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container text-center mt-5" id="containerForApp">
+    <h1>Team One's Ecommerce Auction System</h1>
+    <p class="mt-4">Get Started</p>
+    <button class="btn btn-primary mr-2" id="signUpBtn">Sign Up</button>
+    <button class="btn btn-secondary ml-2" id="signInBtn">Sign In</button>
+</div>
+
+<!-- jQuery and AJAX script at the bottom -->
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script>
+    $(document).ready(function() {
+        //Handler for Sign Up button
+        $('#signUpBtn').click(function() {
+            $.get('/ecommerce/user/userUI/userSignUpPage', function(data) {
+                $('#containerForApp').html(data);
+            }).fail(function() {
+                alert("Error loading sign up page.");
+            });
+        });
+        //Handler for Sign In button
+        $('#signInBtn').click(function() {
+            $.get('/ecommerce/user/userUI/userSignInPage', function(data) {
+                $('#containerForApp').html(data);
+            }).fail(function() {
+                alert("Error loading sign in page.");
+            });
+        });
+    });
+</script>
+</body>
+</html>

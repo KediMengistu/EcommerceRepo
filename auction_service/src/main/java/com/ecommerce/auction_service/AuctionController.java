@@ -29,7 +29,7 @@ public class AuctionController {
 
     @DeleteMapping("/removeauction")
     public void deleteAuction(@RequestParam int auctionid){
-        auctionService.deleteAuction(auctionid);
+        auctionService.deleteAuctionAndCat(auctionid);
     }
 
     @PostMapping("/bid")
