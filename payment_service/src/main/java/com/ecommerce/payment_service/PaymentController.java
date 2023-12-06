@@ -42,4 +42,5 @@ public class PaymentController {
     List<Payment> getAllPayment(){
         return paymentService.getAllPaymentInfo();
     }
+
 }

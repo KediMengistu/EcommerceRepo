@@ -9,6 +9,7 @@ import com.ecommerce.payment_service.OtherServiceObjects.Catalog;
 import com.ecommerce.payment_service.OtherServiceObjects.User;
 import com.ecommerce.payment_service.Receipt.Receipt;
 import com.ecommerce.payment_service.Receipt.ReceiptRepository;
+import com.ecommerce.payment_service.UIClasses.Winner;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -180,5 +181,12 @@ public class PaymentService {
     //provides a list of all the payments.
     List<Payment> getAllPaymentInfo(){
         return paymentRepository.findAll();
+    }
+
+    public String getpaymentpage() {
+         //check for sessionid/check user
+        //Payment paymentinfo paymentRepository.findByreceiptid(itemid);
+        Winner winner = new Winner();
+        return "payment";
     }
 }
