@@ -6,11 +6,13 @@
 
     function ajaxPost() {
       var formData = {
-        cardNumber:$("#cardNumber").val(),
-        cardFirstName: $("#cardFirstName").val(),
-        cardLastName: $("#cardLastName").val(),
-        cardExpireDate: $("#cardExpireDate").val(),
-        securityCode: $("#securityCode").val()
+        username:$("#username").val(),
+        paidauctionid: $("#paidauctionid").val()
+        cardnum:$("#cardnum").val(),
+        cardfname: $("#cardfname").val(),
+        cardlname: $("#cardlname").val(),
+        expdate: $("#expdate").val(),
+        securitycode: $("#securitycode").val()
         }
 
       $.ajax({

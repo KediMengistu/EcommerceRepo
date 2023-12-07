@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -13,15 +14,16 @@ import org.springframework.web.bind.annotation.RequestParam;
 @RequestMapping(path = "ecommerce/payment/ui")
 public class ViewController {
 
+
+    private final PaymentService paymentService;
     @Autowired
-    private static PaymentService paymentService;
-    @GetMapping("/paymentpage")
-    public String getpaymentpage(Model model) {
-        Winner winner = new Winner();
+    public ViewController(PaymentService paymentService) {
+        this.paymentService = paymentService;
+    }
 
-        model.addAttribute("winner", winner);
-
-        return "payment";
+    @GetMapping("/paymentpage/{itemid}")
+    public String getpaymentpage(@PathVariable int itemid, Model model) {
+        return paymentService.getpaymentpage(itemid, model);
     }
 }
 

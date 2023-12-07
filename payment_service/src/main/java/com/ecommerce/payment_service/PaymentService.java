@@ -12,6 +12,7 @@ import com.ecommerce.payment_service.Receipt.ReceiptRepository;
 import com.ecommerce.payment_service.UIClasses.Winner;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.ui.Model;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -183,10 +184,14 @@ public class PaymentService {
         return paymentRepository.findAll();
     }
 
-    public String getpaymentpage() {
+    public String getpaymentpage(int itemid, Model model) {
          //check for sessionid/check user
-        //Payment paymentinfo paymentRepository.findByreceiptid(itemid);
-        Winner winner = new Winner();
+        //Receipt receipt = receiptRepository.findByauctionid(itemid).get();
+
+        Winner winner = new Winner(itemid);
+
+        model.addAttribute("winner", winner);
+
         return "payment";
     }
 }

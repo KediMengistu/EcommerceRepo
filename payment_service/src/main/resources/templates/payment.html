@@ -11,150 +11,179 @@
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js"></script>
   <!-- Include Thymeleaf JavaScript in case you're using th:action in the form -->
   <script th:src="@{/webjars/thymeleaf/3.0.12.RELEASE/thymeleaf.js}"></script>
-</head>
-<body>
-<div id="postResultDiv" align="center"></div>
-<div class = "container">
-  <h2>Auction Result</h2>
-  <!-- Dynamic Fields -->
-  <p>Winner Id: <span th:text="${winner.winnerid}"></span></p>
-  <p>FirstName: <span th:text="${winner.Fname}"></span></p>
-  <p>LastName: <span th:text="${winner.Lname}"></span></p>
-  <p>Country: <span th:text="${winner.country}"></span></p>
-  <p>City: <span th:text="${winner.city}"></span></p>
-  <p>Street: <span th:text="${winner.streetname}"></span></p>
-  <p>Street Number: <span th:text="${winner.streetnumber}"></span></p>
-  <p>Postal Code: <span th:text="${winner.postalcode}"></span></p>
-  <!-- Dynamic Fields -->
-  <p>Item Name: <span th:text="${winner.itemname}"></span></p>
-  <p>Item Id: <span th:text="${winner.itemid}"></span></p>
-  <!-- <p>Item Id: <span th:text="${itemwon.ItemId}"></span></p> -->
-  <p>Total shipping: <span th:text="${winner.totalshipping}"></span></p>
-  <p>Total Cost: <span th:text="${winner.total}"></span></p>
-</div>
-<div class="container">
-  <h2>Enter Card Information</h2>
-  <form id="paymentform" th:action="@{/search}" method="post">
-    <div class="form-group">
-      <label for="cardNumber">Card Number:</label> <input type="number"
-                                                      class="form-control" id="cardNumber" placeholder="Enter Card Number"
-                                                      name="cardNumber" size = "12"  required>
-    </div>
-    <div class="form-group">
-      <label for="cardFirstName">First Name:</label> <input type="text"
-                                                      class="form-control" id="cardFirstName" placeholder="Enter First Name"
-                                                      name="cardFirstName" required>
-    </div>
-    <div class="form-group">
-      <label for="cardLastName">Last Name:</label> <input type="text"
-                                                                    class="form-control" id="cardLastName" placeholder="Enter Last Name"
-                                                                    name="cardLastName" required>
-    </div>
-    <div class="form-group">
-      <label for="cardExpireDate">Expiration Date:</label> <input type="date"
-                                                            class="form-control" id="cardExpireDate" placeholder="Enter Expiration Date"
-                                                            name="cardExpireDate" required>
-    </div>
-    <div class="form-group">
-      <label for="securityCode">Security Code:</label> <input type="number"
-                                                          class="form-control" id="securityCode" placeholder="Enter Security Code"
-                                                          name="securityCode" size ="3" min="0" max="999" required>
-    </div>
-    <button type="submit" class="btn btn-primary">Submit</button>
-      
-  </form>
-  <br />
-<!--  <div class="col-sm-7" style="margin: 20px 0px 20px 0px">-->
-<!--    <button id="getAllItems" type="button" class="btn btn-primary">Get All Items</button>-->
-<!--    <div id="getResultDiv" style="padding: 20px 10px 20px 50px">-->
-<!--      &lt;!&ndash; Your table goes here &ndash;&gt;-->
-<!--      <table id="itemsTable" class="table">-->
-<!--        <thead>-->
-<!--        <tr>-->
-<!--          <th>Item Id</th>-->
-<!--          <th>Item Name</th>-->
-<!--          <th>Item Description</th>-->
-<!--          <th>Auction Type</th>-->
-<!--          <th>Start Price</th>-->
-<!--          <th>Shipping Price</th>-->
-<!--          <th>Expedited Cost</th>-->
-<!--          <th>Duration</th>-->
-<!--          <th>Enddate</th>-->
-<!--        </tr>-->
-<!--        </thead>-->
-<!--        <tbody></tbody>-->
-<!--      </table>-->
-<!--    </div>-->
-<!--  </div>-->
-</div>
-<script>
-  $(document).ready(function () {
-    $("#paymentform").submit(function (event) {
-      event.preventDefault();
-      ajaxPost();
-    });
-
-    function ajaxPost() {
-      var formData = {
-        cardNumber:$("#cardNumber").val(),
-        cardFirstName: $("#cardFirstName").val(),
-        cardLastName: $("#cardLastName").val(),
-        cardExpireDate: $("#cardExpireDate").val(),
-        securityCode: $("#securityCode").val()
-        }
-
-      $.ajax({
-        type: "POST",
-        contentType: "application/json",
-        url: "http://localhost:8093/ecommerce/payment/insertpaymentinfo",
-        data: JSON.stringify(formData),
-        dataType: 'json',
-        success: function (result) {
-          if (result.status == "success") {
-            $("#postResultDiv").html(
-                    "" + "result.data.cardFirstName" + "Post Successfully! <br>" + "---> Congrats !!" + "</p>"
-            );
-          } else {
-            $("#postResultDiv").html("<strong>Error</strong>");
-          }
-          console.log(result);
-        },
-
-      });
+  <style>
+    .row {
+      display: flex;
     }
 
-<!--    $("#getAllItems").click(function (event) {-->
-<!--      ajaxGet();-->
-<!--    });-->
+    .column {
+      flex: 50%;
+      padding: 10px;
+    }
 
-<!--    function ajaxGet() {-->
-<!--      $.ajax({-->
-<!--        url: "http://localhost:8091/ecommerce/catalog/entirecatalog",-->
-<!--        type: 'GET',-->
-<!--        success: function (result) {-->
-<!--          var tableBody = $("#itemsTable tbody");-->
-<!--          tableBody.empty(); // Clear existing rows-->
+    .right-column {
+      background-color: #f2f2f2;
+    }
+  </style>
+</head>
+<body>
+    <div id="postResultDiv" align="center"></div>
+    <div class="row">
+      <div class="column">
+            <div class = "container">
+              <h2>Auction Result</h2>
+              <!-- Dynamic Fields -->
+            <!--  <p>Winner Id: <span th:text="${winner.winnerid}"></span></p>-->
+              <p>FirstName: <span th:text="${winner.Fname}"></span></p>
+              <p>LastName: <span th:text="${winner.Lname}"></span></p>
+              <p>Country: <span th:text="${winner.country}"></span></p>
+              <p>City: <span th:text="${winner.city}"></span></p>
+              <p>Street: <span th:text="${winner.streetname}"></span></p>
+              <p>Street Number: <span th:text="${winner.streetnumber}"></span></p>
+              <p>Postal Code: <span th:text="${winner.postalcode}"></span></p>
+              <!-- Dynamic Fields -->
+              <p>Item Name: <span th:text="${winner.itemname}"></span></p>
+            <!--  <p>Item Id: <span th:text="${winner.itemid}"></span></p>-->
+              <!-- <p>Item Id: <span th:text="${itemwon.ItemId}"></span></p> -->
+              <p>Total shipping: <span th:text="${winner.totalshipping}"></span></p>
+              <p>Total Cost: <span th:text="${winner.total}"></span></p>
+            </div>
+      </div >
+        <div class="column right-column">
+            <div class="container">
+              <h2>Enter Card Information</h2>
+              <form id="paymentform">
+                <div class="form-group">
+            <!--      th:action="@{ecommerce/payment/insertpaymentinfo}" method="post"-->
+                  <label for ="paidauctionid"><input type="hidden" id="paidauctionid" th:attr="value=${winner.itemid}" /> </label>
 
-<!--          result.forEach(function (catalog) {-->
-<!--            var row = $("<tr></tr>");-->
-<!--            row.append($("<td></td>").text(catalog.itemid));-->
-<!--            row.append($("<td></td>").text(catalog.cardFirstName));-->
-<!--            row.append($("<td></td>").text(catalog.cardLastName));-->
-<!--            row.append($("<td></td>").text(catalog.cardExpireDate));-->
-<!--            row.append($("<td></td>").text(catalog.securityCode));-->
-<!--            row.append($("<td></td>").text(catalog.shippingprice));-->
-<!--            row.append($("<td></td>").text(catalog.expeditedcost));-->
-<!--            row.append($("<td></td>").text(catalog.duration));-->
-<!--            row.append($("<td></td>").text(catalog.enddate));-->
-<!--            tableBody.append(row);-->
-<!--          });-->
-<!--        },-->
-<!--        error: function (error) {-->
-<!--          console.log(error);-->
-<!--        }-->
-<!--      });-->
-<!--    }-->
-  });
-</script>
+                  <label for="username">User Name:</label> <input type="text"
+                                                                      class="form-control" id="username" placeholder="Enter Your Username"
+                                                                      name="username"  required>
+
+                  <label for="cardnum">Card Number:</label> <input type="number"
+                                                                  class="form-control" id="cardnum" placeholder="Enter Card Number"
+                                                                  name="cardnum" size = "12"  required>
+                </div>
+                <div class="form-group">
+                  <label for="cardfname">First Name:</label> <input type="text"
+                                                                  class="form-control" id="cardfname" placeholder="Enter First Name"
+                                                                  name="cardfname" required>
+                </div>
+                <div class="form-group">
+                  <label for="cardlname">Last Name:</label> <input type="text"
+                                                                                class="form-control" id="cardlname" placeholder="Enter Last Name"
+                                                                                name="cardlname" required>
+                </div>
+                <div class="form-group">
+                  <label for="expdate">Expiration Date:</label> <input type="date"
+                                                                        class="form-control" id="expdate" placeholder="Enter Expiration Date"
+                                                                        name="expdate" required>
+                </div>
+                <div class="form-group">
+                  <label for="securitycode">Security Code:</label> <input type="number"
+                                                                      class="form-control" id="securitycode" placeholder="Enter Security Code"
+                                                                      name="securitycode" size ="3" min="0" max="999" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Submit</button>
+
+              </form>
+            </div>
+          </div>
+       <br> <br />
+    <!--  <div class="col-sm-7" style="margin: 20px 0px 20px 0px">-->
+    <!--    <button id="getAllItems" type="button" class="btn btn-primary">Get All Items</button>-->
+    <!--    <div id="getResultDiv" style="padding: 20px 10px 20px 50px">-->
+    <!--      &lt;!&ndash; Your table goes here &ndash;&gt;-->
+    <!--      <table id="itemsTable" class="table">-->
+    <!--        <thead>-->
+    <!--        <tr>-->
+    <!--          <th>Item Id</th>-->
+    <!--          <th>Item Name</th>-->
+    <!--          <th>Item Description</th>-->
+    <!--          <th>Auction Type</th>-->
+    <!--          <th>Start Price</th>-->
+    <!--          <th>Shipping Price</th>-->
+    <!--          <th>Expedited Cost</th>-->
+    <!--          <th>Duration</th>-->
+    <!--          <th>Enddate</th>-->
+    <!--        </tr>-->
+    <!--        </thead>-->
+    <!--        <tbody></tbody>-->
+    <!--      </table>-->
+    <!--    </div>-->
+    <!--  </div>-->
+    </div>
+    <script>
+      $(document).ready(function () {
+        $("#paymentform").submit(function (event) {
+          event.preventDefault();
+          ajaxPost();
+        });
+
+        function ajaxPost() {
+          var formData = {
+            username:$("#username").val(),
+            paidauctionid: $("#paidauctionid").val(),
+            cardnum:$("#cardnum").val(),
+            cardfname: $("#cardfname").val(),
+            cardlname: $("#cardlname").val(),
+            expdate: $("#expdate").val(),
+            securitycode: $("#securitycode").val()
+            }
+
+          $.ajax({
+            type: "POST",
+            contentType: "application/json",
+            url: "/ecommerce/payment/insertpaymentinfo",
+            data: JSON.stringify(formData),
+            dataType: 'json',
+            success: function (result) {
+              if (result.status == "success") {
+                $("#postResultDiv").html(
+                        "" + result.data + "Post Successfully! <br>" + "---> Congrats !!" + "</p>"
+                );
+              } else {
+                $("#postResultDiv").html("<strong>Error</strong>");
+              }
+              console.log(result);
+            },
+
+          });
+        }
+
+    <!--    $("#getAllItems").click(function (event) {-->
+    <!--      ajaxGet();-->
+    <!--    });-->
+
+    <!--    function ajaxGet() {-->
+    <!--      $.ajax({-->
+    <!--        url: "http://localhost:8091/ecommerce/catalog/entirecatalog",-->
+    <!--        type: 'GET',-->
+    <!--        success: function (result) {-->
+    <!--          var tableBody = $("#itemsTable tbody");-->
+    <!--          tableBody.empty(); // Clear existing rows-->
+
+    <!--          result.forEach(function (catalog) {-->
+    <!--            var row = $("<tr></tr>");-->
+    <!--            row.append($("<td></td>").text(catalog.itemid));-->
+    <!--            row.append($("<td></td>").text(catalog.cardfname));-->
+    <!--            row.append($("<td></td>").text(catalog.cardlname));-->
+    <!--            row.append($("<td></td>").text(catalog.expdate));-->
+    <!--            row.append($("<td></td>").text(catalog.securitycode));-->
+    <!--            row.append($("<td></td>").text(catalog.shippingprice));-->
+    <!--            row.append($("<td></td>").text(catalog.expeditedcost));-->
+    <!--            row.append($("<td></td>").text(catalog.duration));-->
+    <!--            row.append($("<td></td>").text(catalog.enddate));-->
+    <!--            tableBody.append(row);-->
+    <!--          });-->
+    <!--        },-->
+    <!--        error: function (error) {-->
+    <!--          console.log(error);-->
+    <!--        }-->
+    <!--      });-->
+    <!--    }-->
+      });
+    </script>
 </body>
 </html>

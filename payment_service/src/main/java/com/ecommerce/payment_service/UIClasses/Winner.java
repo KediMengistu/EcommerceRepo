@@ -28,6 +28,22 @@ public class Winner {
         this.totalshipping = 10.0;
         this.total = 90.0;
     }
+
+    public Winner(int itemid){
+
+        this.Fname = "fname";
+        this.Lname = "lname";
+        this.streetname = "streetname";
+        this.streetnumber = 123;
+        this.city = "city";
+        this.country = "country";
+        this.postalcode = "postalcode";
+        this.itemname = "itemname";
+        this.itemid = itemid;
+        this.winnerid = 123;
+        this.totalshipping = 10.0;
+        this.total = 90.0;
+    }
     public Winner(String fname, String lname, String streetname, int streetnumber, String city, String country, String postalcode, String itemname, int itemid, int winnerid, Double totalshipping, Double total) {
         Fname = fname;
         Lname = lname;
