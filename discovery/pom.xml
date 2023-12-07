@@ -58,6 +58,7 @@
 					<image>
 						<builder>paketobuildpacks/builder-jammy-base:latest</builder>
 					</image>
+					<mainClass>com.ecommerce.discovery.DiscoveryApplication</mainClass>
 				</configuration>
 			</plugin>
 		</plugins>

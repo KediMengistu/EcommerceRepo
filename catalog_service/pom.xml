@@ -94,6 +94,7 @@
 					<image>
 						<builder>paketobuildpacks/builder-jammy-base:latest</builder>
 					</image>
+					<mainClass>com.ecommerce.catalog_service.CatalogServiceApplication</mainClass>
 				</configuration>
 			</plugin>
 		</plugins>

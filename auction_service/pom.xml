@@ -75,6 +75,7 @@
 					<image>
 						<builder>paketobuildpacks/builder-jammy-base:latest</builder>
 					</image>
+					<mainClass>com.ecommerce.auction_service.AuctionServiceApplication</mainClass>
 				</configuration>
 			</plugin>
 		</plugins>

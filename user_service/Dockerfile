@@ -5,7 +5,7 @@ RUN mvn clean install -DskipTests
 
 FROM eclipse-temurin:21-jre-alpine@sha256:c26a727c4883eb73d32351be8bacb3e70f390c2c94f078dc493495ed93c60c2f AS layers
 WORKDIR layer
-COPY --from=builder /build/target/api_gateway-0.0.1-SNAPSHOT.jar app.jar
+COPY --from=builder /build/target/user_service-0.0.1-SNAPSHOT.jar app.jar
 RUN java -Djarmode=layertools -jar app.jar extract
 
 FROM eclipse-temurin:21-jre-alpine
@@ -17,7 +17,7 @@ COPY --from=layers /layer/snapshot-dependencies/ ./
 COPY --from=layers /layer/application/ ./
 RUN chown -R appuser:appuser /opt/app
 USER appuser
-EXPOSE 8222
+EXPOSE 8090
 ENTRYPOINT ["java", "org.springframework.boot.loader.JarLauncher"]
 #FROM eclipse-temurin:21-jdk-alpine as build1
 #
@@ -40,35 +40,14 @@ ENTRYPOINT ["java", "org.springframework.boot.loader.JarLauncher"]
 #CMD ["mvn"]
 #
 #FROM build1 AS build2
-#WORKDIR home/api_gateway
+#WORKDIR home/user_service
 #COPY ./* ./
-#COPY pom.xml /api_gateway
+#COPY pom.xml /user_service
 #
 #RUN mvn -f ./pom.xml clean package
 #
 #FROM eclipse-temurin:21-jre-alpine
 #WORKDIR home
-#COPY --from=build2 home/api_gateway/target/api_gateway-0.0.1-SNAPSHOT.jar /api_gateway/target/api_gateway-0.0.1-SNAPSHOT.jar
-#EXPOSE 8222
-#ENTRYPOINT ["java","-jar","/api_gateway/target/api_gateway-0.0.1-SNAPSHOT.jar"]
-#
-##FROM eclipse-temurin:17.0.4.1_1-jre AS builder
-##WORKDIR extracted
-##COPY pom.xml .
-##COPY src ./src
-##COPY api_gateway/target/api_gateway-0.0.1-SNAPSHOT.jar api_gateway.jar
-###RUN mvn
-##RUN java -Djarmode=layertools -jar api_gateway.jar extract
-##
-##
-##FROM builder as build2
-##
-##COPY --from=builder extracted/dependecies/ ./
-##COPY --from=builder extracted/spring-boot-loader/ ./
-##COPY --from=builder extracted/snapshot-dependencies/ ./
-##COPY --from=builder extracted/application/ ./
-### home/app/target/api_gateway-0.0.1-SNAPSHOT.jar api_gateway-0.0.1-SNAPSHOT.jar
-##
-##EXPOSE 5000
-##
-##ENTRYPOINT ["java", "org.springframework.boot.loader.JarLauncher"]
+#COPY --from=build2 home/user_service/target/user_service-0.0.1-SNAPSHOT.jar /user_service/target/user_service-0.0.1-SNAPSHOT.jar
+#EXPOSE 8090
+#ENTRYPOINT ["java","-jar","/user_service/target/user_service-0.0.1-SNAPSHOT.jar"]

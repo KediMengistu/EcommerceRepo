@@ -1,0 +1,63 @@
+services:
+  spring-app:
+    image: yaryorku/docker-springboot-app:latest
+    container_name: payroll-service
+    depends_on:
+      - mysql
+    networks:
+      - my-spring-network
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://my-spring-mysql:3306/payrolldb?allowPublicKeyRetrieval=true&useSSL=false
+      - SPRING_DATASOURCE_USERNAME=springuser
+      - SPRING_DATASOURCE_PASSWORD=/run/secrets/db_password
+    secrets:
+      - db_root_password
+      - db_password
+    ports:
+      - 8085:8085
+  generic-app:
+    image: yaryorku/docker-generic-app:latest
+    container_name: generic-service
+    depends_on:
+      - mysql
+    networks:
+      - my-spring-network
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://my-spring-mysql:3306/payrolldb?allowPublicKeyRetrieval=true&useSSL=false
+      - SPRING_DATASOURCE_USERNAME=springuser
+      - SPRING_DATASOURCE_PASSWORD=/run/secrets/db_password
+      - SPRING_PAYROLL_URL=http://payroll-service:8085
+    secrets:
+      - db_root_password
+      - db_password
+    ports:
+      - 8083:8083
+  mysql:
+    image: mysql:latest
+    container_name: my-spring-mysql
+    volumes:
+      - /home/docker/volumes/myapp/mysql/:/var/lib/mysql/
+    ports:
+      - 3306:3306
+    networks:
+      - my-spring-network
+    environment:
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/db_root_password
+      MYSQL_DATABASE: payrolldb
+      MYSQL_USER: springuser
+      MYSQL_PASSWORD_FILE: /run/secrets/db_password
+    secrets:
+      - db_root_password
+      - db_password
+    command: mysqld --lower_case_table_names=1 --skip-ssl --character_set_server=utf8
+  cloud-gateway:
+    image: yaryorku/docker-my-gateway:latest
+    container_name: gateway-service
+    networks:
+      - my-spring-network
+    ports:
+      - 8080:8080
+    environment:
+      - PAYROLL_URL=http://payroll-service:8085
+      - GENERIC_URL=http://generic-service:8083
+

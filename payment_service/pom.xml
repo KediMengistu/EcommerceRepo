@@ -79,6 +79,7 @@
 					<image>
 						<builder>paketobuildpacks/builder-jammy-base:latest</builder>
 					</image>
+					<mainClass>com.ecommerce.payment_service.PaymentServiceApplication</mainClass>
 				</configuration>
 			</plugin>
 		</plugins>

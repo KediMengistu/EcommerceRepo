@@ -75,6 +75,7 @@
 					<image>
 						<builder>paketobuildpacks/builder-jammy-base:latest</builder>
 					</image>
+					<mainClass>com.ecommerce.user_service.UserServiceApplication</mainClass>
 				</configuration>
 			</plugin>
 		</plugins>

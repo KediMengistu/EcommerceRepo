@@ -50,6 +50,10 @@
 					<image>
 						<builder>paketobuildpacks/builder-jammy-base:latest</builder>
 					</image>
+					<layers>
+						<enabled>true</enabled>
+					</layers>
+					<mainClass>com.ecommerce.config_server.ConfigServerApplication</mainClass>
 				</configuration>
 			</plugin>
 		</plugins>
