@@ -13,7 +13,7 @@ public interface UserClient {
     User findBidderFromUsername(@RequestParam String username);
 
     @PutMapping("/setInAuction")
-    void setAuctionForBidder(@RequestParam String username, @RequestParam int auctioneditemid);
+    void setAuctionForBidder(@RequestParam String username, @RequestParam int auctionid);
 
     @PutMapping("/setOutAuction")
     void setAuctionOutForBidder(@RequestParam String username);

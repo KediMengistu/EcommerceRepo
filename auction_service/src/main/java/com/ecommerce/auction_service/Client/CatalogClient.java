@@ -11,9 +11,9 @@ public interface CatalogClient {
     @ResponseBody
     Catalog searchCatalogById(@RequestParam int id);
 
+    @PutMapping("/setAsExpired")
+    void setCatalogAsExpired(@RequestParam int id);
+
     @DeleteMapping("/deleteitem")
     void removeFromCatalogById(@RequestParam int id);
-
-    @PutMapping("/setAsExpired")
-    void setCatalogAsExpired(@RequestParam int itemid);
 }

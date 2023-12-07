@@ -19,7 +19,6 @@ public class AuctionControllerUI {
         this.userClient = userClient;
     }
 
-
     @GetMapping("/auctionForwardPage")
     public String auctionForwardPage(@RequestParam int auctionid, @CookieValue(value = "session_id", required = false) String existingSessionId) {
         boolean isValidSession = userClient.sessionChecker(existingSessionId);
@@ -36,6 +35,17 @@ public class AuctionControllerUI {
         boolean isValidSession = userClient.sessionChecker(existingSessionId);
         if(isValidSession){
             return "auctionDutchPage";
+        }
+        else{
+            return "auctionSignOutPage";
+        }
+    }
+
+    @GetMapping("/auctionSignOutPage")
+    public String auctionSignOutPage(@CookieValue(value = "session_id", required = false) String existingSessionId) {
+        boolean isValidSession = userClient.sessionChecker(existingSessionId);
+        if(isValidSession){
+            return "auctionSignOutPage";
         }
         else{
             return "auctionSignOutPage";

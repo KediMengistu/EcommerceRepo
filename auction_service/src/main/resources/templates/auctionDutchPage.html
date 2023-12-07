@@ -2,9 +2,191 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Dutch Auction Bid</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .sign-out-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+        }
+    </style>
 </head>
 <body>
+<div class="container">
+    <h1 class="text-center mb-4">Dutch Auction Bid</h1>
 
+    <div class="row">
+        <div class="col-md-6">
+            <h2>Item Description</h2>
+            <div id="item-description">
+                <!-- Content populated via AJAX -->
+            </div>
+            <small class="form-text text-muted">Refresh the page over certain durations to get the most accurate and real-time price.</small>
+            <div id="bid-conditions">
+                <h2 class="mt-4">Conditions and Guidelines For Dutch Bid</h2>
+                <ul>
+                    <li>Buy now indicates the input Dutch bid is equal the current price.</li>
+                    <li>The current price of the item will be incrementally reduced over time.</li>
+                    <li>***To ensure accuracy, refresh page to retrieve the current price in real time.***</li>
+                    <li>A failed bid signifies you did not refresh page to get accurate price to bid with.</li>
+                    <li>A Bid will fail if you are the Seller of the item.</li>
+                    <li>Once you input a valid Bid, you can only bid in that auction until termination.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <button type="button" id="buyNowButton" class="btn btn-success">Buy Now</button>
+            <div id="bidMessage"></div>
+        </div>
+    </div>
+    <button id="signOutButton" class="btn btn-danger sign-out-button">Sign Out</button>
+</div>
+
+<!-- jQuery and Bootstrap JS -->
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.0.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<script>
+    $(document).ready(function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const auctionid = urlParams.get('auctionid');
+        const itemid = urlParams.get('itemid');
+        let currentPrice = 0; // Global variable for current price
+
+        function updateItemDescription() {
+            $.ajax({
+                url: '/ecommerce/auction/id_auction',
+                type: 'GET',
+                data: { id: auctionid },
+                dataType: 'json',
+                success: function(auction) {
+                    if (auction == null) {
+                        populateNotApplicable();
+                    } else {
+                        currentPrice = auction.startprice; // Update current price
+                        $.ajax({
+                            url: '/ecommerce/catalog/searchById',
+                            type: 'GET',
+                            data: { id: itemid },
+                            dataType: 'json',
+                            success: function(catalog) {
+                                if (catalog == null) {
+                                    populateNotApplicable();
+                                } else {
+                                    $('#item-description').html(
+                                        '<p><strong>Description:</strong> ' + catalog.itemdescription + '</p>' +
+                                        '<p><strong>Shipping Price:</strong> ' + catalog.shippingprice + '</p>' +
+                                        '<p><strong>Current Price:</strong> ' + currentPrice + '</p>'
+                                    );
+                                }
+                            },
+                            error: function() {
+                                alert('Error with loading catalog info.');
+                            }
+                        });
+                    }
+                },
+                error: function() {
+                    alert('Error with loading auction info.');
+                }
+            });
+        }
+
+        function populateNotApplicable() {
+            $('#item-description').html(
+                '<p><strong>Description:</strong> Not Applicable; Auction has Expired.</p>' +
+                '<p><strong>Shipping Price:</strong> Not Applicable; Auction has Expired.</p>' +
+                '<p><strong>Current Price:</strong> Not Applicable; Auction has Expired.</p>'
+            );
+        }
+
+        $('#buyNowButton').click(function() {
+            $('#bidMessage').empty(); // Clear any existing message
+            $.ajax({
+                url: '/ecommerce/user/cookieName',
+                type: 'GET',
+                success: function(cookieValue) {
+                    $.ajax({
+                        url: '/ecommerce/user/sessionChecker',
+                        type: 'GET',
+                        data: { existingSessionId: cookieValue },
+                        success: function(sessionValid) {
+                            if (sessionValid) {
+                                retrieveUserAndPlaceBid(cookieValue);
+                            } else {
+                                window.location.href = 'http://localhost:8222/ecommerce/auction/auctionUI/auctionSignOutPage';
+                            }
+                        },
+                        error: function() {
+                            alert('Error during forward bid.');
+                        }
+                    });
+                },
+                error: function() {
+                    alert('Error during forward bid.');
+                }
+            });
+        });
+
+        function retrieveUserAndPlaceBid(cookieValue) {
+            $.ajax({
+                url: '/ecommerce/user/sessionid_getuser',
+                type: 'GET',
+                data: { sessionid: parseInt(cookieValue) },
+                success: function(user) {
+                    if(user != null) {
+                        placeBid(currentPrice, user.username);
+                    } else {
+                        alert('Error during forward bid.');
+                    }
+                },
+                error: function() {
+                    alert('Error during forward bid.');
+                }
+            });
+        }
+
+        function placeBid(bidAmount, bidderUsername) {
+            $.ajax({
+                url: '/ecommerce/auction/bid',
+                type: 'POST',
+                data: {
+                    bidderusername: bidderUsername,
+                    auctioneditemid: parseInt(itemid),
+                    bid: bidAmount
+                },
+                success: function(result) {
+                    if(result) {
+                        $('#bidMessage').html('<div class="alert alert-success" role="alert">Purchase successful.</div>');
+                    } else {
+                        $('#bidMessage').html('<div class="alert alert-danger" role="alert">Purchase failed. Ensure to Follow Guidelines.</div>');
+                    }
+                },
+                error: function() {
+                    alert('Error during the purchase process.');
+                }
+            });
+        }
+
+        $('#signOutButton').click(function() {
+            $.ajax({
+                url: '/ecommerce/catalog/catalogUI/catalogSignOutPage',
+                type: 'GET',
+                success: function(response) {
+                    window.location.href = 'http://localhost:8222/ecommerce/auction/auctionUI/auctionSignOutPage';
+                },
+                error: function() {
+                    alert('Error during sign out.');
+                }
+            });
+        });
+
+        updateItemDescription(); // Initial call to update item description
+    });
+</script>
 </body>
 </html>

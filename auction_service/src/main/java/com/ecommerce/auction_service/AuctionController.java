@@ -22,6 +22,11 @@ public class AuctionController {
         return auctionService.createAuction(catandtime);
     }
 
+    @GetMapping("/id_auction")
+    public Auction getAuctionFromId(@RequestParam int id){
+        return auctionService.getAuctionFromId(id);
+    }
+
     @GetMapping("/allauctions")
     public List<Auction> getAllAuctions() {
         return auctionService.getAllAuctions();

@@ -2,9 +2,192 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Forward Auction Bid</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .sign-out-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+        }
+    </style>
 </head>
 <body>
+<div class="container">
+    <h1 class="text-center mb-4">Forward Auction Bid</h1>
 
+    <div class="row">
+        <div class="col-md-6">
+            <h2>Item Description</h2>
+            <div id="item-description">
+                <!-- Content populated via AJAX -->
+            </div>
+            <div id="bid-conditions">
+                <h2 class="mt-4">Conditions and Guidelines For Forward Bid</h2>
+                <ul>
+                    <li>Bid must be positive.</li>
+                    <li>A valid forward bid is greater than the current price.</li>
+                    <li>Input Bid value will be truncated to 2 decimals: 10.00340 will become 10.00 or equivalently 10.</li>
+                    <li>A Bid will fail if you are the Seller of the item.</li>
+                    <li>Once you input a valid Bid, you can only bid in that auction until termination.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <form id="bidForm">
+                <div class="form-group">
+                    <label for="bid">Your Bid:</label>
+                    <input type="text" id="bid" name="bid" class="form-control">
+                    <small class="form-text text-muted">A bid will be truncated to 2 decimal places if longer.</small>
+                </div>
+                <button type="button" id="placeBidButton" class="btn btn-success">Place Bid</button>
+                <div id="bidMessage"></div>
+            </form>
+        </div>
+    </div>
+    <button id="signOutButton" class="btn btn-danger sign-out-button">Sign Out</button>
+</div>
+
+<!-- jQuery and Bootstrap JS -->
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.0.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<script>
+    $(document).ready(function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const auctionid = urlParams.get('auctionid');
+        const itemid = urlParams.get('itemid');
+        updateItemDescription(); // Call this function on page load
+
+        function updateItemDescription() {
+            $.ajax({
+                url: '/ecommerce/auction/id_auction',
+                type: 'GET',
+                data: { id: auctionid },
+                dataType: 'json',
+                success: function(auction) {
+                    if (auction == null) {
+                        populateNotApplicable();
+                    } else {
+                        $.ajax({
+                            url: '/ecommerce/catalog/searchById',
+                            type: 'GET',
+                            data: { id: itemid },
+                            dataType: 'json',
+                            success: function(catalog) {
+                                if (catalog == null) {
+                                    populateNotApplicable();
+                                } else {
+                                    var currentPrice = auction.highestbid != 0 ? auction.highestbid : auction.startprice;
+                                    $('#item-description').html(
+                                        '<p><strong>Description:</strong> ' + catalog.itemdescription + '</p>' +
+                                        '<p><strong>Shipping Price:</strong> ' + catalog.shippingprice + '</p>' +
+                                        '<p><strong>Current Price:</strong> ' + currentPrice + '</p>' +
+                                        '<p><strong>Highest Bidder Id:</strong> ' + auction.highestbidderid + '</p>'
+                                    );
+                                }
+                            },
+                            error: function() {
+                                alert('Error with loading catalog info.');
+                            }
+                        });
+                    }
+                },
+                error: function() {
+                    alert('Error with loading auction info.');
+                }
+            });
+        }
+
+        function populateNotApplicable() {
+            $('#item-description').html(
+                '<p><strong>Description:</strong> Not Applicable; Auction has Expired.</p>' +
+                '<p><strong>Shipping Price:</strong> Not Applicable; Auction has Expired.</p>' +
+                '<p><strong>Current Price:</strong> Not Applicable; Auction has Expired.</p>' +
+                '<p><strong>Highest Bidder:</strong> Not Applicable; Auction has Expired.</p>'
+            );
+        }
+
+        $('#placeBidButton').click(function() {
+            $('#bidMessage').empty(); // Clear any existing message
+            $.ajax({
+                url: '/ecommerce/user/cookieName',
+                type: 'GET',
+                success: function(cookieValue) {
+                    $.ajax({
+                        url: '/ecommerce/user/sessionChecker',
+                        type: 'GET',
+                        data: { existingSessionId: cookieValue },
+                        success: function(sessionValid) {
+                            if (sessionValid) {
+                                $.ajax({
+                                    url: '/ecommerce/user/sessionid_getuser',
+                                    type: 'GET',
+                                    data: { sessionid: parseInt(cookieValue) },
+                                    success: function(user) {
+                                        if(user != null) {
+                                            var bidderusername = user.username;
+                                            var auctioneditemid = parseInt(itemid);
+                                            var bid = parseFloat($('#bid').val());
+                                            $.ajax({
+                                                url: '/ecommerce/auction/bid',
+                                                type: 'POST',
+                                                data: {
+                                                    bidderusername: bidderusername,
+                                                    auctioneditemid: auctioneditemid,
+                                                    bid: bid
+                                                },
+                                                success: function(result) {
+                                                    if(result) {
+                                                        $('#bidMessage').html('<div class="alert alert-success" role="alert">Valid bid made.</div>');
+                                                    } else {
+                                                        $('#bidMessage').html('<div class="alert alert-danger" role="alert">Invalid bid made. Follow guidelines.</div>');
+                                                    }
+                                                    updateItemDescription(); // Update item description after bid
+                                                },
+                                                error: function() {
+                                                    alert('Error during forward bid.');
+                                                }
+                                            });
+                                        } else {
+                                            alert('Error during forward bid.');
+                                        }
+                                    },
+                                    error: function() {
+                                        alert('Error during forward bid.');
+                                    }
+                                });
+                            } else {
+                                window.location.href = 'http://localhost:8222/ecommerce/auction/auctionUI/auctionSignOutPage';
+                            }
+                        },
+                        error: function() {
+                            alert('Error during forward bid.');
+                        }
+                    });
+                },
+                error: function() {
+                    alert('Error during forward bid.');
+                }
+            });
+        })
+
+        $('#signOutButton').click(function() {
+            $.ajax({
+                url: '/ecommerce/catalog/catalogUI/catalogSignOutPage',
+                type: 'GET',
+                success: function(response) {
+                    window.location.href = 'http://localhost:8222/ecommerce/auction/auctionUI/auctionSignOutPage';
+                },
+                error: function() {
+                    alert('Error during sign out.');
+                }
+            });
+        });
+    });
+</script>
 </body>
 </html>

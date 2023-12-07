@@ -428,6 +428,20 @@ public class AuctionService {
         }
     }
 
+    public Auction getAuctionFromId(int id) {
+        if(auctionRepository.findById(id).isEmpty()){
+            return null;
+        }
+        else{
+            if(auctionRepository.findById(id).get().isExpired()==false){
+                return auctionRepository.findById(id).get();
+            }
+            else{
+                return null;
+            }
+        }
+    }
+
     public Auction getAuctionFromCatId(int auctioneditemid) {
         Auction result = null;
         List<Auction> auctionList = auctionRepository.findAll();

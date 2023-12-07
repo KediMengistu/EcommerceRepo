@@ -134,6 +134,7 @@ public class CatalogService {
             }
         }
     }
+
     //returns the entire catalog.
     //added filter to only return non-expired catalog items.
     public List<Catalog> entireCatalog() {
@@ -159,7 +160,7 @@ public class CatalogService {
         for(Catalog c: catItems){
             //true means, the current catalog item has the keyword - added to return list.
             if(c!= null && c.getExpired()==false && c.getItemname()!= null && !c.getItemname().isEmpty() &&
-               c.getItemname().contains(itemname)){
+                c.getItemname().contains(itemname)){
                 resultItems.add(c);
             }
         }
@@ -174,9 +175,9 @@ public class CatalogService {
     }
 
     //sets the catalog item to be expired.
-    public void setItemAsExpired(int itemid) {
-        if(catalogRepository.findById(itemid).isPresent()){
-            Catalog cat = catalogRepository.findById(itemid).get();
+    public void setItemAsExpired(int id) {
+        if(catalogRepository.findById(id).isPresent()){
+            Catalog cat = catalogRepository.findById(id).get();
             cat.setExpired(true);
             catalogRepository.save(cat);
         }

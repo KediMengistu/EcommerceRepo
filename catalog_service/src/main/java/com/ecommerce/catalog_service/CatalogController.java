@@ -46,8 +46,8 @@ public class CatalogController {
     }
 
     @PutMapping("/setAsExpired")
-    void setCatalogAsExpired(@RequestParam int itemid){
-        catalogService.setItemAsExpired(itemid);
+    void setCatalogAsExpired(@RequestParam int id){
+        catalogService.setItemAsExpired(id);
     }
 
     @DeleteMapping("/deleteitem")
