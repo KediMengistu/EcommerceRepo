@@ -1,13 +1,11 @@
 package com.ecommerce.payment_service;
 
+import com.ecommerce.payment_service.IncomingRequestObjectBodies.PaymentInfo;
 import com.ecommerce.payment_service.UIClasses.Winner;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 
 @Controller
@@ -22,8 +20,17 @@ public class ViewController {
     }
 
     @GetMapping("/paymentpage/{itemid}")
-    public String getpaymentpage(@PathVariable int itemid, Model model) {
-        return paymentService.getpaymentpage(itemid, model);
+    public String getpaymentpage(@PathVariable int itemid, @RequestParam int userid, @RequestParam boolean expedited, Model model) {
+        return paymentService.getpaymentpage(itemid, userid, expedited, model);
+    }
+    @PostMapping("/insertpaymentinfo")
+    String payForAuctionedOffItem(@RequestBody PaymentInfo paymentInfo, Model model){
+        return paymentService.payForItem(paymentInfo, model);
+    }
+
+    @GetMapping("/reciept/{paymentid}")
+    public String getreciept(@PathVariable int paymentid, @RequestParam int itemid, @RequestParam int userid, Model model) {
+        return paymentService.getreciept(paymentid, itemid, userid, model);
     }
 }
 

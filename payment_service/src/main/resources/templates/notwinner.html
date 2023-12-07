@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Payment Unavailable</title>
+    <style>
+        body {
+          font-family: Arial, sans-serif;
+          text-align: center;
+          margin-top: 50px;
+        }
+        .container {
+          border: 2px solid #ccc; /* Gray border */
+          border-radius: 8px;
+          padding: 20px;
+          max-width: 400px;
+          margin: 0 auto;
+        }
+        .message {
+          font-size: 24px;
+          color: #000; /* Black */
+          margin-bottom: 20px;
+        }
+        .btn {
+          display: inline-block;
+          padding: 10px 20px;
+          font-size: 16px;
+          border: none;
+          border-radius: 5px;
+          text-decoration: none;
+          color: #fff;
+          background-color: #007bff; /* Blue */
+          cursor: pointer;
+          transition: background-color 0.3s;
+        }
+        .btn:hover {
+          background-color: #0056b3; /* Darker blue on hover */
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="message">
+        <p>Sorry, you cannot make the payment.</p>
+        <p>Another user has won this item.</p>
+    </div>
+    <a href="/ecommerce/catalog/entirecatalog" class="btn">Browse Catalog</a>
+</div>
+</body>
+</html>

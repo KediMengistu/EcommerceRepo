@@ -56,8 +56,10 @@
                 <div class="form-group">
             <!--      th:action="@{ecommerce/payment/insertpaymentinfo}" method="post"-->
                   <label for ="paidauctionid"><input type="hidden" id="paidauctionid" th:attr="value=${winner.itemid}" /> </label>
+                    <label for ="totalpaid"><input type="hidden" id="totalpaid" th:attr="value=${winner.total}" /> </label>
 
-                  <label for="username">User Name:</label> <input type="text"
+
+                    <label for="username">User Name:</label> <input type="text"
                                                                       class="form-control" id="username" placeholder="Enter Your Username"
                                                                       name="username"  required>
 
@@ -125,6 +127,7 @@
           var formData = {
             username:$("#username").val(),
             paidauctionid: $("#paidauctionid").val(),
+            totalpaid: $("#totalpaid").val(),
             cardnum:$("#cardnum").val(),
             cardfname: $("#cardfname").val(),
             cardlname: $("#cardlname").val(),
@@ -138,15 +141,37 @@
             url: "/ecommerce/payment/insertpaymentinfo",
             data: JSON.stringify(formData),
             dataType: 'json',
-            success: function (result) {
-              if (result.status == "success") {
-                $("#postResultDiv").html(
-                        "" + result.data + "Post Successfully! <br>" + "---> Congrats !!" + "</p>"
-                );
-              } else {
-                $("#postResultDiv").html("<strong>Error</strong>");
-              }
-              console.log(result);
+            success: function (result, textStatus, xhr) {
+                if (xhr.status === 200) {
+                    // Perform a GET request after a successful POST
+                    $.ajax({
+                        type: "GET",
+                        url: "/your-get-endpoint", // Replace with your GET endpoint
+                        success: function (data) {
+                            // Handle success of the GET request
+                            // Do something with the data received
+                            console.log(data);
+                        },
+                        error: function (xhr, status, error) {
+                            // Handle error cases for the GET request
+                            console.log("GET request failed: " + xhr.status);
+                        }
+                    });
+                } else {
+                    $("#postResultDiv").html("Post Successful <br>");
+                }
+                console.log(result);
+            },
+            error: function (xhr, status, error) {
+                // This function handles any error occurred during the AJAX call,
+                // including HTTP error statuses like 4xx or 5xx.
+
+                if (xhr.status === 200) {
+                    // Handle specific error cases based on the response status code (if needed)
+                } else {
+                    $("#postResultDiv").html("<strong>Error: " + xhr.status + "</strong>");
+                }
+                console.log(xhr);
             },
 
           });

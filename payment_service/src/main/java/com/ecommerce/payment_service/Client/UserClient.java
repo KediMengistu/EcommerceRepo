@@ -10,4 +10,7 @@ public interface UserClient {
 
     @GetMapping("/username_getuser")
     User findPayerFromUsername(@RequestParam String username);
+
+    @GetMapping("/id_getuser")
+    User findPayerFromId(@RequestParam int id);
 }

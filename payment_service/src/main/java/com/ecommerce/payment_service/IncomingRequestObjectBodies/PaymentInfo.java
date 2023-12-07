@@ -13,11 +13,12 @@ public class PaymentInfo {
     private String cardlname;
     private LocalDate expdate;
     private int securitycode;
+    private Double totalpaid;
 
     public PaymentInfo() {
     }
 
-    public PaymentInfo(String username, int paidauctionid, int cardnum, String cardfname, String cardlname, LocalDate expdate, int securitycode) {
+    public PaymentInfo(String username, int paidauctionid, int cardnum, String cardfname, String cardlname, LocalDate expdate, int securitycode, Double totalpaid) {
         this.username = username;
         this.paidauctionid = paidauctionid;
         this.cardnum = cardnum;
@@ -25,7 +26,9 @@ public class PaymentInfo {
         this.cardlname = cardlname;
         this.expdate = expdate;
         this.securitycode = securitycode;
+        this.totalpaid = totalpaid;
     }
+
 
     public String getUsername() {
         return username;
@@ -81,5 +84,13 @@ public class PaymentInfo {
 
     public void setSecuritycode(int securitycode) {
         this.securitycode = securitycode;
+    }
+
+    public Double getTotalpaid() {
+        return totalpaid;
+    }
+
+    public void setTotalpaid(Double totalpaid) {
+        this.totalpaid = totalpaid;
     }
 }

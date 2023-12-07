@@ -9,6 +9,7 @@ import com.ecommerce.payment_service.OtherServiceObjects.Catalog;
 import com.ecommerce.payment_service.OtherServiceObjects.User;
 import com.ecommerce.payment_service.Receipt.Receipt;
 import com.ecommerce.payment_service.Receipt.ReceiptRepository;
+import com.ecommerce.payment_service.UIClasses.Reciept;
 import com.ecommerce.payment_service.UIClasses.Winner;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -100,7 +101,7 @@ public class PaymentService {
     }
 
     //used to pay for item that was won.
-    public boolean payForItem(PaymentInfo paymentInfo) {
+    public String payForItem(PaymentInfo paymentInfo,Model model) {
         //local fields.
         User user;
         Optional<Receipt> opReceipt;
@@ -113,7 +114,7 @@ public class PaymentService {
 
         //user does not exist, so cannot pay for item.
         if(user==null){
-            return false;
+            return "false";
         }
         //user does exist, so can potentially pay for item.
         else{
@@ -122,7 +123,7 @@ public class PaymentService {
 
             //there does not exist a receipt entry corresponding to the auction with auctionid.
             if(opReceipt.isEmpty()){
-                return false;
+                return "false";
             }
             //receipt entry exists with the unique auctionid.
             else{
@@ -131,7 +132,7 @@ public class PaymentService {
 
                 //checking to see if there doesnt already exist a payment corresponding to the receipt.
                 if(!paymentRepository.findByreceiptid(receipt.getReceiptid()).isEmpty()) {
-                    return false;
+                    return "paidfor";
                 }
                 else{
                     //check to see if the user corresponds to the receipt with auctionid.
@@ -147,15 +148,17 @@ public class PaymentService {
                             pay.setUsercardexpdate(paymentInfo.getExpdate());
                             pay.setUsercardsecuritycode(paymentInfo.getSecuritycode());
                             pay.setReceiptid(receipt.getReceiptid());
+                            pay.setTotalpaid(paymentInfo.getTotalpaid());
                             paymentRepository.save(pay);
 
                             //once payment for auction is confirmed, auction can finally be removed.
                             auctionclient.deleteAuction(receipt.getAuctionid());
-                            return true;
+                            return getreciept(pay.getPaymentid(), receipt.getAuctionid(), user.getUserid(), model);
                         }
                     }
+                    return "notwinner";
                 }
-                return false;
+
             }
         }
     }
@@ -184,14 +187,46 @@ public class PaymentService {
         return paymentRepository.findAll();
     }
 
-    public String getpaymentpage(int itemid, Model model) {
+    public String getpaymentpage(int itemid, int userid, boolean expidited, Model model) {
          //check for sessionid/check user
-        //Receipt receipt = receiptRepository.findByauctionid(itemid).get();
+        Receipt receipt = receiptRepository.findByauctionid(itemid).get();
 
-        Winner winner = new Winner(itemid);
+        if(userid != receipt.getPayerid())
+            return "notwinner";
+        Double totalshipping;
+        if(expidited){
+        totalshipping = receipt.getShippingprice() + receipt.getExpeditedcost();}
+        else  totalshipping = receipt.getShippingprice() + receipt.getExpeditedcost();
+
+        User user = userclient.findPayerFromId(userid);
+        Winner winner = new Winner(user.getFirstname(), user.getLastname(),
+                user.getStreetname(), user.getStreetnumber(), user.getCity(),
+                user.getCountry(), user.getPostalcode(), receipt.getItemname(),
+                itemid, receipt.getPayerid(), totalshipping, receipt.getDefaulttotal() + totalshipping );
 
         model.addAttribute("winner", winner);
 
         return "payment";
+    }
+
+    public String getreciept(int paymentid, int itemid, int userid, Model model) {
+        Receipt receipt = receiptRepository.findByauctionid(itemid).get();
+        Optional<Payment> payment = paymentRepository.findById(paymentid);
+
+        if(userid != receipt.getPayerid() || payment.get().getReceiptid() != receipt.getReceiptid())
+            return "false";
+
+        if(payment.isEmpty())
+            return "notpaid";
+
+        User user = userclient.findPayerFromId(userid);
+         Reciept receiptobject  = new Reciept(user.getFirstname(), user.getLastname(),
+                user.getStreetname(), user.getStreetnumber(), user.getCity(),
+                user.getCountry(), user.getPostalcode(), receipt.getItemname(),
+                itemid, payment.get().getTotalpaid(), 10);
+
+        model.addAttribute("winner", receiptobject);
+
+        return "reciept";
     }
 }

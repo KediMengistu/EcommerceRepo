@@ -23,16 +23,20 @@ public class Payment {
     @Column(nullable = false)
     private int usercardsecuritycode;
 
+    @Column(nullable = false)
+    private Double totalpaid;
+
     public Payment() {
     }
 
-    public Payment(int receiptid, int usercardnumber, String usercardfname, String usercardlname, LocalDate usercardexpdate, int usercardsecuritycode) {
+    public Payment(int receiptid, int usercardnumber, String usercardfname, String usercardlname, LocalDate usercardexpdate, int usercardsecuritycode, Double totalpaid) {
         this.receiptid = receiptid;
         this.usercardnumber = usercardnumber;
         this.usercardfname = usercardfname;
         this.usercardlname = usercardlname;
         this.usercardexpdate = usercardexpdate;
         this.usercardsecuritycode = usercardsecuritycode;
+        this.totalpaid = totalpaid;
     }
 
     public int getPaymentid() {
@@ -89,5 +93,13 @@ public class Payment {
 
     public void setUsercardsecuritycode(int usercardsecuritycode) {
         this.usercardsecuritycode = usercardsecuritycode;
+    }
+
+    public Double getTotalpaid() {
+        return totalpaid;
+    }
+
+    public void setTotalpaid(Double totalpaid) {
+        this.totalpaid = totalpaid;
     }
 }

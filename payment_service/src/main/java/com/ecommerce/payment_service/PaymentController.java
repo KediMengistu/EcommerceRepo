@@ -32,10 +32,7 @@ public class PaymentController {
     }
 
     //creates payment info by initially verifying validity with receipts.
-    @PostMapping("/insertpaymentinfo")
-    boolean payForAuctionedOffItem(@RequestBody PaymentInfo paymentInfo){
-        return paymentService.payForItem(paymentInfo);
-    }
+
 
     //returns list of payment for all auctions that have been paid for.
     @GetMapping("/allpayment")
