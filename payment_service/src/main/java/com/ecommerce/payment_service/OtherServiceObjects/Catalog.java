@@ -14,6 +14,7 @@ public class Catalog {
     private double expeditedcost;
     private LocalTime duration;
     private LocalDate enddate;
+    private boolean expired;
 
     public Catalog() {
     }
@@ -104,5 +105,13 @@ public class Catalog {
 
     public void setEnddate(LocalDate enddate) {
         this.enddate = enddate;
+    }
+
+    public Boolean getExpired() {
+        return expired;
+    }
+
+    public void setExpired(Boolean expired) {
+        this.expired = expired;
     }
 }

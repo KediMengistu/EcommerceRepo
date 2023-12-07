@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Item Search</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        .search-container {
+            text-align: center;
+            margin-top: 50px;
+        }
+        .search-results-table, .no-item-found {
+            margin: 20px auto;
+            width: 80%; /* Adjust the width as needed */
+            display: block;
+        }
+        .search-results-table {
+            border-collapse: collapse;
+        }
+        .search-results-table th, .search-results-table td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: center;
+        }
+        .sign-out-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1 class="text-center mt-5">Item Search</h1>
+    <div class="search-container">
+        <input type="text" id="searchInput" class="form-control d-inline-block" style="width: 300px;" placeholder="Search items...">
+        <button id="searchButton" class="btn btn-primary ml-2">Submit Search</button>
+        <div id="searchResultsTable"></div>
+    </div>
+    <button id="signOutButton" class="btn btn-danger sign-out-button">Sign Out</button>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<script>
+    $(document).ready(function() {
+        $('#searchButton').click(function() {
+            // First, check the session
+            $.ajax({
+                url: '/ecommerce/user/cookieName',
+                type: 'GET',
+                success: function(cookieValue) {
+                    $.ajax({
+                        url: '/ecommerce/user/sessionChecker',
+                        type: 'GET',
+                        data: { existingSessionId: cookieValue },
+                        success: function(sessionValid) {
+                            if (sessionValid) {
+                                var searchTerm = $('#searchInput').val();
+                                $.ajax({
+                                    url: '/ecommerce/catalog/search',
+                                    type: 'GET',
+                                    data: { 'itemname': searchTerm },
+                                    success: function(catalogList) {
+                                        $('#searchResultsTable').empty();
+                                        if (catalogList.length === 0) {
+                                            $('#searchResultsTable').append('<div class="no-item-found">Nothing found - the item does not exist or is no longer on auction</div>');
+                                            return;
+                                        }
+                                        var table = $('<table>').addClass('table table-responsive search-results-table');
+                                        var headerRow = $('<tr>');
+                                        headerRow.append('<th>Item Name</th>');
+                                        headerRow.append('<th>Current Price</th>');
+                                        headerRow.append('<th>Auction Type</th>');
+                                        headerRow.append('<th>End Time</th>');
+                                        headerRow.append('<th>End Date</th>');
+                                        headerRow.append('<th>Select Item</th>');
+                                        table.append(headerRow);
+
+                                        catalogList.forEach(function(item) {
+                                            $.ajax({
+                                                url: '/ecommerce/catalog/getAuctionFromCatalog',
+                                                type: 'GET',
+                                                data: { 'auctioneditemid': item.itemid },
+                                                success: function(auctionItem) {
+                                                    if (auctionItem != null) {
+                                                        var currentPrice = auctionItem.auctiontype === 'Forward' ?
+                                                            (auctionItem.highestbid > 0 ? auctionItem.highestbid : auctionItem.startprice) :
+                                                            auctionItem.startprice;
+                                                        var row = $('<tr>');
+                                                        row.append($('<td>').text(item.itemname));
+                                                        row.append($('<td>').text(currentPrice));
+                                                        row.append($('<td>').text(auctionItem.auctiontype));
+                                                        row.append($('<td>').text(auctionItem.auctiontype === 'Dutch' ? 'Not Applicable' : auctionItem.endtime));
+                                                        row.append($('<td>').text(auctionItem.auctiontype === 'Dutch' ? 'Not Applicable' : auctionItem.enddate));
+                                                        var bidButton = $('<button>').addClass('btn btn-success').text('Bid').click(function() {
+                                                            // Check session before redirecting to bid page
+                                                            $.ajax({
+                                                                url: '/ecommerce/user/cookieName',
+                                                                type: 'GET',
+                                                                success: function(cookieValue) {
+                                                                    $.ajax({
+                                                                        url: '/ecommerce/user/sessionChecker',
+                                                                        type: 'GET',
+                                                                        data: { existingSessionId: cookieValue },
+                                                                        success: function(sessionValid) {
+                                                                            if (sessionValid) {
+                                                                                if(auctionItem.auctiontype === 'Forward'){
+                                                                                    window.location.href = 'http://localhost:8222/ecommerce/auction/auctionUI/auctionForwardPage?auctionId=' + auctionItem.auctionid;
+                                                                                }
+                                                                                else{
+                                                                                    window.location.href = 'http://localhost:8222/ecommerce/auction/auctionUI/auctionDutchPage?auctionId=' + auctionItem.auctionid;
+                                                                                }
+                                                                            } else {
+                                                                                alert('Error with proceeding to bid.');
+                                                                            }
+                                                                        },
+                                                                        error: function() {
+                                                                            alert('Error with proceeding to bid.');
+                                                                        }
+                                                                    });
+                                                                },
+                                                                error: function() {
+                                                                    alert('Error with proceeding to bid.');
+                                                                }
+                                                            });
+                                                        });
+                                                        row.append($('<td>').append(bidButton));
+                                                        table.append(row);
+                                                    }
+                                                },
+                                                error: function() {
+                                                    alert('Error with search.');
+                                                }
+                                            });
+                                        });
+                                        $('#searchResultsTable').append(table);
+                                    },
+                                    error: function() {
+                                        alert('Error during search.');
+                                    }
+                                });
+                            } else {
+                                window.location.href = 'http://localhost:8222/ecommerce/catalog/catalogUI/catalogSignOutPage';
+                            }
+                        },
+                        error: function() {
+                            alert('Error with search.');
+                        }
+                    });
+                },
+                error: function() {
+                    alert('Error with search.');
+                }
+            });
+        });
+
+        $('#signOutButton').click(function() {
+            $.ajax({
+                url: '/ecommerce/catalog/catalogUI/catalogSignOutPage',
+                type: 'GET',
+                success: function(response) {
+                    window.location.href = 'http://localhost:8222/ecommerce/catalog/catalogUI/catalogSignOutPage';
+                },
+                error: function() {
+                    alert('Error during sign out.');
+                }
+            });
+        });
+    });
+</script>
+</body>
+</html>

@@ -10,4 +10,8 @@ public interface UserClient {
 
     @GetMapping("/username_getuser")
     User findSellerFromUsername(@RequestParam String username);
+
+    @GetMapping("/sessionChecker")
+    boolean sessionChecker(@RequestParam String existingSessionId);
+
 }

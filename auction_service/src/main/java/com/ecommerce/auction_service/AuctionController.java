@@ -32,6 +32,11 @@ public class AuctionController {
         auctionService.deleteAuctionAndCat(auctionid);
     }
 
+    @GetMapping("/getAuctionFromCatalog")
+    public Auction getAuctionFromCatId(@RequestParam int auctioneditemid){
+        return auctionService.getAuctionFromCatId(auctioneditemid);
+    }
+
     @PostMapping("/bid")
     public boolean bid(@RequestParam String bidderusername,
                        @RequestParam int auctioneditemid,

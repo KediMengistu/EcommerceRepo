@@ -32,11 +32,19 @@
 <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 <script>
     $(document).ready(function() {
-        // Event handler for the Back to Start button
+        // For the Back to Start Button
         $('#backToStartBtn').click(function() {
-            window.location.href = 'http://localhost:8222/ecommerce/user/userUI/userStartPage';
+            $.ajax({
+                url: 'http://localhost:8222/ecommerce/user/userUI/userStartPage',
+                type: 'GET',
+                success: function() {
+                    window.location.href = 'http://localhost:8222/ecommerce/user/userUI/userStartPage';
+                },
+                error: function() {
+                    alert('Error navigating to the start page.');
+                }
+            });
         });
-
         $('#confirmSignInBtn').click(function() {
             var usernameVar = $('#signInForm input[name="username"]').val();
             var passwordVar = $('#signInForm input[name="password"]').val();
@@ -54,23 +62,74 @@
                     // Append the table to the responseTable div
                     $('#responseTable').html(table);
 
-                    if (response === true) {
+                    if (response[0] === true) {
                         // For successful sign in, hide the form and show additional buttons
                         $('#signInForm, #confirmSignInBtn, #backToStartBtn').hide();
 
+                        // Proceed to Catalog button is an Ajax request - protects against the issue of the catalog not running
                         var proceedButton = $('<button>')
                             .addClass('btn btn-success mt-3')
                             .text('Proceed to Catalog')
                             .click(function() {
-                                //window.location.href = '/catalog';
+                                $.ajax({
+                                    url: '/ecommerce/catalog/catalogUI/catalogStartPage',
+                                    type: 'GET',
+                                    success: function(response) {
+                                        window.location.href = 'http://localhost:8222/ecommerce/catalog/catalogUI/catalogStartPage';
+                                    },
+                                    error: function() {
+                                        // On error, try to get the cookie name
+                                        $.ajax({
+                                            url: '/ecommerce/user/cookieName',
+                                            type: 'GET',
+                                            success: function(cookieValue) {
+                                                // Use the cookie value as needed
+                                                $.ajax({
+                                                    url: '/ecommerce/user/sessionChecker',
+                                                    type: 'GET',
+                                                    data: { existingSessionId: cookieValue },  // Add this line to send the cookie value as a parameter
+                                                    success: function(sessionValid) {
+                                                    if (sessionValid) {
+                                                        // Session is valid, so do not serve the sign-out page
+                                                        // Handle the error conditionally
+                                                        alert('Error proceeding to catalog.');
+                                                    }
+                                                    else {
+                                                        // Session is not valid, so serve the sign-out page
+                                                        window.location.href = 'http://localhost:8222/ecommerce/user/userUI/userSignOutPage';
+                                                    }
+                                                },
+                                                error: function() {
+                                                    // Cannot check session in user service - indicates an error with the service
+                                                    alert('Error proceeding to catalog.');
+                                                }
+                                            });
+                                        },
+                                        error: function() {
+                                            // Could not retrieve the cookie, indicating an error with the user service
+                                            console.error('Error proceeding to catalog.');
+                                        }
+                                    });
+                                }
                             });
+                        });
 
+                        // For the Sign Out Button
                         var signOutButton = $('<button>')
                             .addClass('btn btn-danger mt-3')
                             .text('Sign Out')
                             .click(function() {
-                                window.location.href = 'http://localhost:8222/ecommerce/user/userUI/userStartPage';
+                                $.ajax({
+                                url: 'http://localhost:8222/ecommerce/user/userUI/userSignOutPage',
+                                type: 'GET',
+                                success: function() {
+                                    window.location.href = 'http://localhost:8222/ecommerce/user/userUI/userSignOutPage';
+                                },
+                                error: function() {
+                                    alert('Error during sign out.');
+                                }
                             });
+                        });
 
                         var disclaimer = $('<div>')
                             .addClass('text-center mt-2')
@@ -81,14 +140,58 @@
 
                         // Append the additional buttons below the table
                         $('#responseTable').append(proceedButton, signOutButton, disclaimer);
-                    } else {
-                        // Unsuccessful Sign In
-                        headerRow.append($('<th>').text('Unsuccessful Sign In'));
-                        table.append(headerRow);
+                    }
+                    else if (response[0] === false){
 
-                        // Show error message
-                        var errorRow = $('<tr>').append($('<td>').text('Incorrect username or password.'));
-                        table.append(errorRow);
+                        if (response.length === 1){
+                            // Unsuccessful Sign In
+                            headerRow.append($('<th>').text('Unsuccessful Sign In'));
+                            table.append(headerRow);
+
+                            // Show error message
+                            var errorRow = $('<tr>').append($('<td>').text('Incorrect username or password.'));
+                            table.append(errorRow);
+                        }
+
+                        else {
+                            // Unsuccessful Sign In
+                            $('#signInForm, #confirmSignInBtn, #backToStartBtn').hide();
+
+                            // For the Sign Out Button
+                            var signOutButton = $('<button>')
+                                .addClass('btn btn-danger mt-3')
+                                .text('Sign Out')
+                                .click(function() {
+                                    $.ajax({
+                                        url: 'http://localhost:8222/ecommerce/user/userUI/userSignOutPage',
+                                        type: 'GET',
+                                        success: function() {
+                                            window.location.href = 'http://localhost:8222/ecommerce/user/userUI/userSignOutPage';
+                                        },
+                                        error: function() {
+                                            alert('Error during sign out.');
+                                        }
+                                    });
+                                });
+
+                            if(response.length === 2){
+                                headerRow.append($('<th>').text('Unsuccessful Sign In - Session Error'));
+                                table.append(headerRow);
+
+                                // Show error message
+                                var errorRow = $('<tr>').append($('<td>').text('Active user browser session expired - Sign Out'));
+                                table.append(errorRow);
+                            }
+                            else{
+                                headerRow.append($('<th>').text('Unsuccessful Sign In - Session Error'));
+                                table.append(headerRow);
+
+                                // Show error message
+                                var errorRow = $('<tr>').append($('<td>').text('Active user browser session - Sign Out'));
+                                table.append(errorRow);
+                            }
+                            $('#responseTable').append(signOutButton);
+                        }
                     }
                 },
                 error: function() {

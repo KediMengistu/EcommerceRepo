@@ -4,6 +4,7 @@ import com.ecommerce.catalog_service.Client.AuctionClient;
 import com.ecommerce.catalog_service.Client.UserClient;
 import com.ecommerce.catalog_service.OtherServiceObjects.User;
 import com.ecommerce.catalog_service.OutgoingRequestObjectBodies.CatalogAndTimeRequestBody;
+import com.ecommerce.payment_service.OtherServiceObjects.Auction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.time.LocalDate;
@@ -87,6 +88,9 @@ public class CatalogService {
                 //setting end date for catalog item.
                 catalog.setEnddate(endDate);
 
+                //set catalog item to not expired
+                catalog.setExpired(false);
+
                 //creating request body to be supplied to auctionservice to create
                 //auction for catalog item - JSON contains catalog and auction time info
                 //facade pattern is technically used here because user has no control or
@@ -115,21 +119,37 @@ public class CatalogService {
         }
     }
 
-    //searches and returns the catalog item corresponding to the id
+    //searches and returns the catalog item corresponding to the id.
+    //added filter to only be searching for non-expired catalog items.
     public Catalog searchCatalogById(int id) {
         if(catalogRepository.findById(id).isEmpty()){
             return null;
         }
         else{
-            return catalogRepository.findById(id).get();
+            if(catalogRepository.findById(id).get().getExpired()==false){
+                return catalogRepository.findById(id).get();
+            }
+            else{
+                return null;
+            }
         }
     }
-    //returns the entire catalog
+    //returns the entire catalog.
+    //added filter to only return non-expired catalog items.
     public List<Catalog> entireCatalog() {
-        return catalogRepository.findAll();
+        List<Catalog> repo = catalogRepository.findAll();
+        List<Catalog> result = new ArrayList<>();
+        //filtering repo arraylist of catalog items which are non-expired.
+        for(int i=0; i<repo.size(); i++){
+            if(repo.get(i)!=null && repo.get(i).getExpired()==false){
+                result.add(repo.get(i));
+            }
+        }
+        return result;
     }
 
     //searches and returns the list of catalog items with the specific name.
+    //added filter to only return non-expired catalog items.
     public List<Catalog> searchCatalog(String itemname) {
         //local fields.
         List<Catalog> catItems = catalogRepository.findAll();
@@ -138,7 +158,7 @@ public class CatalogService {
         //checking to see if the catalog items contain the keyword
         for(Catalog c: catItems){
             //true means, the current catalog item has the keyword - added to return list.
-            if(c!= null && c.getItemname()!= null && !c.getItemname().isEmpty() &&
+            if(c!= null && c.getExpired()==false && c.getItemname()!= null && !c.getItemname().isEmpty() &&
                c.getItemname().contains(itemname)){
                 resultItems.add(c);
             }
@@ -153,9 +173,27 @@ public class CatalogService {
         }
     }
 
-    //removes the catalog item by its id
+    //sets the catalog item to be expired.
+    public void setItemAsExpired(int itemid) {
+        if(catalogRepository.findById(itemid).isPresent()){
+            Catalog cat = catalogRepository.findById(itemid).get();
+            cat.setExpired(true);
+            catalogRepository.save(cat);
+        }
+    }
+
+    //removes the catalog item by its id.
     public void removeItem(int id) {
-        catalogRepository.deleteById(id);
+        if(catalogRepository.findById(id).isPresent()){
+            Catalog cat = catalogRepository.findById(id).get();
+            if(cat.getExpired()==true){
+                catalogRepository.deleteById(id);
+            }
+        }
+    }
+
+    public Auction getAuctionFromCatId(int auctioneditemid) {
+        return auctionclient.getAuctionFromCatId(auctioneditemid);
     }
 
     //peforms checks to validate catalog item to be potentially sold.

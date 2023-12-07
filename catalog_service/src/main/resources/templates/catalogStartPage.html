@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Team One's Ecommerce Auction System</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        /* Additional styling */
+        .title-big {
+            font-size: 2em;
+            text-align: center;
+            font-weight: bold;
+            text-decoration: underline;
+        }
+        .title-small {
+            text-align: center;
+            margin-top: 20px;
+            margin-bottom: 50px;
+        }
+        .button-container {
+            text-align: center;
+        }
+        .sign-out-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1 class="title-big">Team One's Ecommerce Auction System</h1>
+    <h2 class="title-small">Welcome to the catalog! Please Select an Option Below...</h2>
+
+    <div class="button-container">
+        <button id="searchButton" class="btn btn-primary mr-2">Search</button>
+        <button id="sellButton" class="btn btn-primary ml-2">Sell</button>
+    </div>
+
+    <button id="signOutButton" class="btn btn-danger sign-out-button">Sign Out</button>
+</div>
+
+<!-- jQuery and Bootstrap JS -->
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<script>
+    $(document).ready(function() {
+        $('#searchButton').click(function() {
+            // AJAX request to load search page
+            $.ajax({
+                url: '/ecommerce/catalog/catalogUI/catalogSearchPage',
+                type: 'GET',
+                success: function(response) {
+                    window.location.href = 'http://localhost:8222/ecommerce/catalog/catalogUI/catalogSearchPage';
+                },
+                error: function() {
+                    alert('Error with loading search page.');
+                }
+            });
+        });
+
+        $('#sellButton').click(function() {
+            // AJAX request to load sell page
+            $.ajax({
+                url: '/ecommerce/catalog/catalogUI/catalogSellPage',
+                type: 'GET',
+                success: function(response) {
+                    window.location.href = 'http://localhost:8222/ecommerce/catalog/catalogUI/catalogSellPage';
+                },
+                error: function() {
+                    alert('Error with loading sell page.');
+                }
+            });
+        });
+
+        $('#signOutButton').click(function() {
+            $.ajax({
+                url: '/ecommerce/catalog/catalogUI/catalogSignOutPage',
+                type: 'GET',
+                success: function(response) {
+                    window.location.href = 'http://localhost:8222/ecommerce/catalog/catalogUI/catalogSignOutPage';
+                },
+                error: function(){
+                    alert('Error during sign out.');
+                }
+            });
+         });
+    });
+</script>
+</body>
+</html>

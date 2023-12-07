@@ -11,11 +11,12 @@ public class User {
     private String city;
     private String country;
     private String postalcode;
+    private int auctionid;
 
     public User() {
     }
 
-    public User(String username, String userpassword, String firstname, String lastname, String streetname, int streetnumber, String city, String country, String postalcode) {
+    public User(String username, String userpassword, String firstname, String lastname, String streetname, int streetnumber, String city, String country, String postalcode, int auctionid) {
         this.username = username;
         this.userpassword = userpassword;
         this.firstname = firstname;
@@ -25,6 +26,7 @@ public class User {
         this.city = city;
         this.country = country;
         this.postalcode = postalcode;
+        this.auctionid = auctionid;
     }
 
     public int getUserid() {
@@ -105,5 +107,13 @@ public class User {
 
     public void setPostalcode(String postalcode) {
         this.postalcode = postalcode;
+    }
+
+    public int getAuctionid() {
+        return auctionid;
+    }
+
+    public void setAuctionid(int auctionid) {
+        this.auctionid = auctionid;
     }
 }
