@@ -29,6 +29,8 @@ public class Catalog {
     private LocalTime duration;
     @Column(nullable = false)
     private LocalDate enddate;
+    @Column(nullable = false)
+    private Boolean expired;
 
     public Catalog() {
     }
@@ -119,5 +121,13 @@ public class Catalog {
 
     public void setEnddate(LocalDate enddate) {
         this.enddate = enddate;
+    }
+
+    public Boolean getExpired() {
+        return expired;
+    }
+
+    public void setExpired(Boolean expired) {
+        this.expired = expired;
     }
 }

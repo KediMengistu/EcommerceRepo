@@ -3,6 +3,7 @@ package com.ecommerce.auction_service;
 import com.ecommerce.auction_service.Bid.Bid;
 import com.ecommerce.auction_service.IncomingRequestObjectBodies.CatalogAndTimeRequestBody;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,6 +23,16 @@ public class AuctionController {
         return auctionService.createAuction(catandtime);
     }
 
+    @GetMapping("/id_auction")
+    public Auction getAuctionFromId(@RequestParam int id){
+        return auctionService.getAuctionFromId(id);
+    }
+
+    @GetMapping("/validexpiredauction")
+    public ResponseEntity<String> isValidExpired(@RequestParam int id){
+        return ResponseEntity.ok(auctionService.isValidExpired(id));
+    }
+
     @GetMapping("/allauctions")
     public List<Auction> getAllAuctions() {
         return auctionService.getAllAuctions();
@@ -30,6 +41,11 @@ public class AuctionController {
     @DeleteMapping("/removeauction")
     public void deleteAuction(@RequestParam int auctionid){
         auctionService.deleteAuctionAndCat(auctionid);
+    }
+
+    @GetMapping("/getAuctionFromCatalog")
+    public Auction getAuctionFromCatId(@RequestParam int auctioneditemid){
+        return auctionService.getAuctionFromCatId(auctioneditemid);
     }
 
     @PostMapping("/bid")

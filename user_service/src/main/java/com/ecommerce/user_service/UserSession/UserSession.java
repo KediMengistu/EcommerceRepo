@@ -22,13 +22,11 @@ public class UserSession {
     private LocalTime endTime;
     @Column(nullable = false)
     private LocalTime maxSessionTime;
-    @Column(nullable = false)
-    private boolean expired;
 
     public UserSession() {
     }
 
-    public UserSession(int sessionId, String username, LocalDate creationDate, LocalTime creationTime, LocalDate endDate, LocalTime endTime, LocalTime maxSessionTime, boolean expired) {
+    public UserSession(int sessionId, String username, LocalDate creationDate, LocalTime creationTime, LocalDate endDate, LocalTime endTime, LocalTime maxSessionTime) {
         this.sessionId = sessionId;
         this.username = username;
         this.creationDate = creationDate;
@@ -36,7 +34,6 @@ public class UserSession {
         this.endDate = endDate;
         this.endTime = endTime;
         this.maxSessionTime = maxSessionTime;
-        this.expired = expired;
     }
 
     public int getSessionId() {
@@ -94,13 +91,5 @@ public class UserSession {
 
     public void setMaxSessionTime(LocalTime maxSessionTime) {
         this.maxSessionTime = maxSessionTime;
-    }
-
-    public boolean isExpired() {
-        return expired;
-    }
-
-    public void setExpired(boolean expired) {
-        this.expired = expired;
     }
 }

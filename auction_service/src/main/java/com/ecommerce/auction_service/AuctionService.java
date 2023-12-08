@@ -29,7 +29,6 @@ public class AuctionService {
     private final CatalogClient catalogclient;
     private final PaymentClient paymentclient;
 
-
     @Autowired
     public AuctionService(AuctionRepository auctionRepository, BidRepository bidRepository, UserClient userclient, CatalogClient catalogclient, PaymentClient paymentclient) {
         this.auctionRepository = auctionRepository;
@@ -65,6 +64,7 @@ public class AuctionService {
             auction.setDuration(catitem.getDuration());
             auction.setEndtime(endtime);
             auction.setEnddate(catitem.getEnddate());
+            auction.setExpired(false);
             auctionRepository.save(auction);
         }
         //dutch so the startprice is elevated.
@@ -76,6 +76,7 @@ public class AuctionService {
             auction.setEndtime(endtime);
             auction.setEnddate(catitem.getEnddate());
             setupDecrementvaluesAndFinal(auction);
+            auction.setExpired(false);
             auctionRepository.save(auction);
         }
         return true;
@@ -83,7 +84,14 @@ public class AuctionService {
 
     //returns a list of all the auctions that are currently up on the system.
     public List<Auction> getAllAuctions() {
-        return auctionRepository.findAll();
+        List<Auction> result = new ArrayList<>();
+        List<Auction> auctionList = auctionRepository.findAll();
+        for(int i=0; i<auctionList.size(); i++){
+            if(auctionList.get(i)!=null && auctionList.get(i).isExpired()){
+                result.add(auctionList.get(i));
+            }
+        }
+        return result;
     }
 
     //putting in bid for auctions.
@@ -124,10 +132,12 @@ public class AuctionService {
 
                     //check if bidder is not the same as seller of catalog item on auction.
                     //true means invalid.
-                    if(bidder.getUserid()==catitem.getSellerid()){
+                    if(bidder.getUserid()==catitem.getSellerid() ||
+                      ((bidder.getAuctionid()!=0 &&
+                       bidder.getAuctionid()!=auction.getAuctionid()))){
                         return false;
                     }
-                    //bidder is not the seller.
+                    //bidder is not the seller and is either a new bidder or a returning bidder to this auction.
                     else {
 
                         //check if bid is positive.
@@ -141,6 +151,10 @@ public class AuctionService {
                             if (auction.getAuctiontype().equals("Forward")) {
                                 //bid is the highest.
                                 if (bid > auction.getHighestbid()) {
+                                    //set the bidder to be in this auction if not already; it must be 0 at this point.
+                                    if(bidder.getAuctionid()!=auction.getAuctionid()){
+                                        userclient.setAuctionForBidder(bidder.getUsername(), auction.getAuctionid());
+                                    }
                                     //update auction info
                                     auction.setHighestbid(bid);
                                     auction.setHighestbidderid(bidder.getUserid());
@@ -158,12 +172,16 @@ public class AuctionService {
                                 //bid made is equivalent to current price.
                                 //remove item from catalog.
                                 if (bid == auction.getStartprice()) {
+                                    //set the bidder to be in this auction if not already; it must be 0 at this point.
+                                    if(bidder.getAuctionid()!=auction.getAuctionid()){
+                                        userclient.setAuctionForBidder(bidder.getUsername(), auction.getAuctionid());
+                                    }
                                     //update auction info.
                                     auction.setHighestbid(bid);
                                     auction.setHighestbidderid(bidder.getUserid());
                                     auction.setExpired(true);
-//                                    //remove from catalog.
-//                                    catalogclient.removeFromCatalogById(auction.getAuctioneditemid());
+                                    //setting the corresponding catalog item to expire.
+                                    catalogclient.setCatalogAsExpired(auction.getAuctioneditemid());
                                     //save bid in bid table.
                                     createAndStoreBid(bid, auction, catitem.getSellerid());
                                     //load receipt information.
@@ -410,6 +428,62 @@ public class AuctionService {
         }
     }
 
+    public Auction getAuctionFromId(int id) {
+        if(auctionRepository.findById(id).isEmpty()){
+            return null;
+        }
+        else{
+            if(auctionRepository.findById(id).get().isExpired()==false){
+                return auctionRepository.findById(id).get();
+            }
+            else{
+                return null;
+            }
+        }
+    }
+
+    public Auction getAuctionFromCatId(int auctioneditemid) {
+        Auction result = null;
+        List<Auction> auctionList = auctionRepository.findAll();
+        for(int i=0; i<auctionList.size(); i++){
+            if(auctionList.get(i)!=null && auctionList.get(i).isExpired()==false){
+                if(auctionList.get(i).getAuctioneditemid()==auctioneditemid){
+                    result = auctionList.get(i);
+                }
+            }
+        }
+        return result;
+    }
+
+    public String isValidExpired(int id) {
+        Optional<Auction> opAuction = auctionRepository.findById(id);
+        Auction auction = null;
+        String result = "";
+        if(opAuction.isEmpty()){
+            result = "Non-existent";
+        }
+        else{
+            auction = opAuction.get();
+            //bid and expired - serve new page
+            if(auction.getHighestbidderid()!=0 && auction.isExpired()==true){
+                result = "Serve New Page";
+            }
+            //no bid and expired - invalid - dont serve new page at all - go back.
+            else if(auction.getHighestbidderid()==0 && auction.isExpired()==true){
+                result = "Go Back";
+            }
+            //bid and not yet expired - dont serve page yet but will.
+            else if(auction.getHighestbidderid()!=0 && auction.isExpired()==false){
+                result = "Don't Serve Yet";
+            }
+            //no bid and not yet expired - dont serve page yet - may or may not.
+            else {
+                result = "May or May not Serve ";
+            }
+        }
+        return result;
+    }
+
     //this will delete an auction.
     public void deleteAuctionAndCat(int auctionid) {
         //local fields.
@@ -449,25 +523,26 @@ public class AuctionService {
                 auction.getEndtime().equals(LocalTime.now().truncatedTo(ChronoUnit.SECONDS))) ||
                (auction.getEnddate().isEqual(LocalDate.now()) &&
                 auction.getEndtime().isBefore(LocalTime.now().truncatedTo(ChronoUnit.SECONDS)))) {
-//                //remove from catalog.
-//                catalogclient.removeFromCatalogById(auction.getAuctioneditemid());
+
                 //load receipt information in the case that the expired auction has bids.
                 //when highest bidderid is 0, no one has put in a bid.
                 //do not need to load receipt info - can just delete auction straight away.
-                if(auction.getHighestbidderid()==0){
-//                    auctionRepository.delete(auction);
+                if(auction.getHighestbidderid()==0 && auction.isExpired()==false){
+                    auction.setExpired(true);
+                    catalogclient.setCatalogAsExpired(auction.getAuctioneditemid());
                     deleteAuctionAndCat(auction.getAuctionid());
                 }
                 //load receipt information for expired auction that has been bid on and won.
                 //make sure to save auction into auction table, where these won auctions
                 //are only removed from auction if payment has been made.
                 else{
-                    catauction = new CatalogAndAuctionRequestBody(catitem, auction);
-                    paymentclient.loadPayInfoFromAuctionEndReciept(catauction);
                     //save updated auction into table - only in the first instance
                     //when the auction's expired flag has been set to be removed.
                     if(auction.isExpired()==false){
+                        catauction = new CatalogAndAuctionRequestBody(catitem, auction);
+                        paymentclient.loadPayInfoFromAuctionEndReciept(catauction);
                         auction.setExpired(true);
+                        catalogclient.setCatalogAsExpired(auction.getAuctioneditemid());
                         auctionRepository.save(auction);
                     }
                 }

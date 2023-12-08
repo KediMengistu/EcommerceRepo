@@ -1,5 +1,6 @@
 package com.ecommerce.catalog_service;
 
+import com.ecommerce.payment_service.OtherServiceObjects.Auction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -36,6 +37,17 @@ public class CatalogController {
     @ResponseBody
     public List<Catalog> searchCatalog(@RequestParam String itemname) {
         return catalogService.searchCatalog(itemname);
+    }
+
+    @GetMapping("/getAuctionFromCatalog")
+    @ResponseBody
+    public Auction getAuctionFromCatId(@RequestParam int auctioneditemid){
+        return catalogService.getAuctionFromCatId(auctioneditemid);
+    }
+
+    @PutMapping("/setAsExpired")
+    void setCatalogAsExpired(@RequestParam int id){
+        catalogService.setItemAsExpired(id);
     }
 
     @DeleteMapping("/deleteitem")

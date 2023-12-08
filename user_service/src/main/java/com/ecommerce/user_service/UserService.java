@@ -1,5 +1,7 @@
 package com.ecommerce.user_service;
 
+import com.ecommerce.user_service.UserSession.UserSession;
+import com.ecommerce.user_service.UserSession.UserSessionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -10,10 +12,12 @@ import java.util.Optional;
 @Service
 public class UserService {
     private final UserRepository userRepository;
+    private final UserSessionRepository userSessionRepository;
 
     @Autowired
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, UserSessionRepository userSessionRepository) {
         this.userRepository = userRepository;
+        this.userSessionRepository = userSessionRepository;
     }
 
     //signing up.
@@ -95,6 +99,49 @@ public class UserService {
                 }
             }
             return null;
+        }
+    }
+
+    //finding the user from there session
+    public User findUserFromSession(int sessionid) {
+        if(userSessionRepository.findById(sessionid).isEmpty()){
+            return null;
+        }
+        else{
+            UserSession userSession = userSessionRepository.findById(sessionid).get();
+            //extracting the username of the user corresponding to this session.
+            String username = userSession.getUsername();
+            List<User> userList = userRepository.findAll();
+            for(User u: userList){
+                if(u!=null && u.getUsername()!=null && u.getUsername().equals(username)){
+                    return u;
+                }
+            }
+            return null;
+        }
+    }
+
+    public void setUserInAuction(String username, int auctionid) {
+        List<User> userList = userRepository.findAll();
+        for(int i=0; i<userList.size(); i++){
+            if(userList.get(i)!=null && userList.get(i).getUsername().equals(username)){
+                if(userList.get(i).getAuctionid()==0){
+                    userList.get(i).setAuctionid(auctionid);
+                    userRepository.save(userList.get(i));
+                }
+            }
+        }
+    }
+
+    public void setUserOutOfAuction(String username) {
+        List<User> userList = userRepository.findAll();
+        for(int i=0; i<userList.size(); i++){
+            if(userList.get(i)!=null && userList.get(i).getUsername().equals(username)){
+                if(userList.get(i).getAuctionid()!=0){
+                    userList.get(i).setAuctionid(0);
+                    userRepository.save(userList.get(i));
+                }
+            }
         }
     }
 

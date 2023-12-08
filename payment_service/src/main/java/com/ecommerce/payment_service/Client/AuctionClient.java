@@ -12,7 +12,7 @@ import java.util.List;
 public interface AuctionClient {
 
     @GetMapping("/allbids")
-    public List<Bid> getallbids(@RequestParam int auctionid);
+    public List<Bid> getallbids();
 
     @DeleteMapping("/removeauction")
     public void deleteAuction(@RequestParam int auctionid);

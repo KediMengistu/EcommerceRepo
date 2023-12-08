@@ -21,4 +21,9 @@ public class UserControllerUI {
     public String userSignInPage() {
         return "userSignInPage";
     }
+
+    @GetMapping("/userSignOutPage")
+    public String userSignOutPage() {
+        return "userSignOutPage";
+    }
 }

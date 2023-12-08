@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>Post Item for Sale Onto Catalog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js"></script>
+    <style>
+        .footer-buttons {
+            position: fixed;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 20px;
+        }
+        .footer-buttons button {
+            width: 150px;
+        }
+        #postMessage {
+            text-align: center;
+            margin-top: 10px;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2 style="text-align: center; font-weight: bold; text-decoration: underline;">Post Item for Sale Onto Catalog</h2>
+    <form id="postItemForm">
+        <div class="form-group">
+            <label for="itemname">Item Name:</label>
+            <input type="text" class="form-control" id="itemname" placeholder="Enter Item Name" name="itemname">
+            <small class="form-text text-muted">Item name cannot be empty.</small>
+        </div>
+        <div class="form-group">
+            <label for="itemdescription">Item Description:</label>
+            <input type="text" class="form-control" id="itemdescription" placeholder="Enter Item Description" name="itemdescription">
+            <small class="form-text text-muted">Provide a brief description of the item.</small>
+        </div>
+        <div class="form-group">
+            <label for="auctiontype">Auction Type:</label>
+            <input type="text" class="form-control" id="auctiontype" placeholder="Enter Auction Type (Forward/Dutch)" name="auctiontype">
+            <small class="form-text text-muted">Only 'Forward' or 'Dutch' are valid auction types.</small>
+        </div>
+        <div class="form-group">
+            <label for="startprice">Start Price:</label>
+            <input type="text" class="form-control" id="startprice" placeholder="Enter Start Price" name="startprice">
+            <small class="form-text text-muted">Price must be positive and have at 2 decimal places ("10.00").</small>
+        </div>
+        <div class="form-group">
+            <label for="duration">Duration:</label>
+            <input type="text" class="form-control" id="duration" placeholder="Enter Duration (HH:MM:SS)" name="duration">
+            <small class="form-text text-muted">Duration must be between 00:01:00 and 23:59:59 (HH:MM:SS).</small>
+        </div>
+        <div id="postMessage"></div>
+    </form>
+    <div class="footer-buttons">
+        <button type="submit" form="postItemForm" class="btn btn-primary">Submit</button>
+        <button id="signOutButton" class="btn btn-danger">Sign Out</button>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function() {
+        $("#postItemForm").submit(function(event) {
+            event.preventDefault();
+            // First, check the session
+            $.ajax({
+                url: '/ecommerce/user/cookieName',
+                type: 'GET',
+                success: function(cookieValue) {
+                    $.ajax({
+                        url: '/ecommerce/user/sessionChecker',
+                        type: 'GET',
+                        data: { existingSessionId: cookieValue },
+                        success: function(sessionValid) {
+                            if (sessionValid) {
+                                // Get user from session id
+                                $.ajax({
+                                    url: '/ecommerce/user/sessionid_getuser',
+                                    type: 'GET',
+                                    data: { sessionid: parseInt(cookieValue) },
+                                    success: function(user) {
+                                        if (user != null) {
+                                            // Post item for sale
+                                            var formData = {
+                                                itemname: $("#itemname").val(),
+                                                itemdescription: $("#itemdescription").val(),
+                                                auctiontype: $("#auctiontype").val(),
+                                                startprice: $("#startprice").val(),
+                                                duration: $("#duration").val()
+                                            };
+                                            $.ajax({
+                                                url: '/ecommerce/catalog/sell?sellerusername=' + user.username,
+                                                type: 'POST',
+                                                contentType: 'application/json',
+                                                data: JSON.stringify(formData),
+                                                success: function(postSuccess) {
+                                                    if (postSuccess) {
+                                                        $("#postMessage").html("<div class='alert alert-success'>Item successfully posted and is up for auction.</div>");
+                                                    } else {
+                                                        $("#postMessage").html("<div class='alert alert-danger'>Error with Posting item for sale.</div>");
+                                                    }
+                                                },
+                                                error: function() {
+                                                    alert('Error with Posting item for sale.');
+                                                }
+                                            });
+                                        } else {
+                                            $("#postMessage").html("<div class='alert alert-danger'>User does not exist.</div>");
+                                        }
+                                    },
+                                    error: function() {
+                                        alert('Error with Posting item for sale.');
+                                    }
+                                });
+                            } else {
+                                window.location.href = 'http://localhost:8222/ecommerce/catalog/catalogUI/catalogSignOutPage';
+                            }
+                        },
+                        error: function() {
+                            alert('Error with Posting item for sale.');
+                        }
+                    });
+                },
+                error: function() {
+                    alert('Error with Posting item for sale.');
+                }
+            });
+        });
+
+        $('#signOutButton').click(function() {
+            $.ajax({
+                url: '/ecommerce/catalog/catalogUI/catalogSignOutPage',
+                type: 'GET',
+                success: function() {
+                    window.location.href = 'http://localhost:8222/ecommerce/catalog/catalogUI/catalogSignOutPage';
+                },
+                error: function() {
+                    alert('Error during sign out.');
+                }
+            });
+        });
+    });
+</script>
+</body>
+</html>
