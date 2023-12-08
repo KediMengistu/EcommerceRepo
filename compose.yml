@@ -1,63 +1,135 @@
 services:
-  spring-app:
-    image: yaryorku/docker-springboot-app:latest
-    container_name: payroll-service
-    depends_on:
-      - mysql
-    networks:
-      - my-spring-network
-    environment:
-      - SPRING_DATASOURCE_URL=jdbc:mysql://my-spring-mysql:3306/payrolldb?allowPublicKeyRetrieval=true&useSSL=false
-      - SPRING_DATASOURCE_USERNAME=springuser
-      - SPRING_DATASOURCE_PASSWORD=/run/secrets/db_password
-    secrets:
-      - db_root_password
-      - db_password
+  database:
+    # Configuration for Amazon RDS database
+    # Replace placeholders with actual configuration for Amazon RDS
+    image: mysql:5.7  # MySQL 5.7 image
     ports:
-      - 8085:8085
-  generic-app:
-    image: yaryorku/docker-generic-app:latest
-    container_name: generic-service
-    depends_on:
-      - mysql
-    networks:
-      - my-spring-network
+      - "3306:3306"  # Map container port to host
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:mysql://my-spring-mysql:3306/payrolldb?allowPublicKeyRetrieval=true&useSSL=false
-      - SPRING_DATASOURCE_USERNAME=springuser
-      - SPRING_DATASOURCE_PASSWORD=/run/secrets/db_password
-      - SPRING_PAYROLL_URL=http://payroll-service:8085
-    secrets:
-      - db_root_password
-      - db_password
-    ports:
-      - 8083:8083
-  mysql:
-    image: mysql:latest
-    container_name: my-spring-mysql
+      MYSQL_ROOT_PASSWORD: Ecommerce4413!
+      MYSQL_DATABASE: ecommercedb
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: Ecommerce4413!
     volumes:
-      - /home/docker/volumes/myapp/mysql/:/var/lib/mysql/
-    ports:
-      - 3306:3306
-    networks:
-      - my-spring-network
-    environment:
-      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/db_root_password
-      MYSQL_DATABASE: payrolldb
-      MYSQL_USER: springuser
-      MYSQL_PASSWORD_FILE: /run/secrets/db_password
-    secrets:
-      - db_root_password
-      - db_password
-    command: mysqld --lower_case_table_names=1 --skip-ssl --character_set_server=utf8
-  cloud-gateway:
-    image: yaryorku/docker-my-gateway:latest
-    container_name: gateway-service
-    networks:
-      - my-spring-network
-    ports:
-      - 8080:8080
-    environment:
-      - PAYROLL_URL=http://payroll-service:8085
-      - GENERIC_URL=http://generic-service:8083
+      - db_data:/var/lib/mysql  # Persist data to a volume
 
+  configserver:
+    build:
+      context: ./config_server  # Path to the directory containing the Dockerfile
+      dockerfile: Dockerfile  # Name of the Dockerfile
+    ports:
+      - "8888:8888"
+    container_name: configserver
+    depends_on:
+     - database
+    networks:
+     - my-spring-network
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://ecommercedb.c25xj0lpmeiu.us-east-2.rds.amazonaws.com:3306/ecommercedb
+      - SPRING_DATASOURCE_USERNAME=admin
+      - SPRING_DATASOURCE_PASSWORD=Ecommerce4413!
+    volumes:
+      - shared_data:/shared
+
+  discovery:
+    build:
+      context: ./discovery  # Path to the directory containing the Dockerfile
+      dockerfile: Dockerfile  # Name of the Dockerfile
+    ports:
+      - "8761:8761"
+    container_name: discovery
+    volumes:
+      - shared_data:/shared
+
+  api_gateway:
+    build:
+      context: ./api_gateway  # Path to the directory containing the Dockerfile
+      dockerfile: Dockerfile  # Name of the Dockerfile
+    ports:
+      - "8222:8222"  # Map container port to host
+    container_name: api_gateway
+    volumes:
+      - shared_data:/shared
+    # Other necessary settings for api_gateway service
+
+  auctionservice:
+    build:
+      context: ./auction_service  # Path to the directory containing the Dockerfile
+      dockerfile: Dockerfile  # Name of the Dockerfile
+    ports:
+      - "8092:8092"
+    container_name: auctionservice
+    depends_on:
+      - database
+    networks:
+      - my-spring-network
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://ecommercedb.c25xj0lpmeiu.us-east-2.rds.amazonaws.com:3306/ecommercedb
+      - SPRING_DATASOURCE_USERNAME=admin
+      - SPRING_DATASOURCE_PASSWORD=Ecommerce4413!
+    volumes:
+      - shared_data:/shared
+
+  catalogservice:
+    build:
+      context: ./catalog_service  # Path to the directory containing the Dockerfile
+      dockerfile: Dockerfile  # Name of the Dockerfile
+    ports:
+      - "8091:8091"
+    container_name: catalogservice
+    depends_on:
+      - database
+    networks:
+      - my-spring-network
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://ecommercedb.c25xj0lpmeiu.us-east-2.rds.amazonaws.com:3306/ecommercedb
+      - SPRING_DATASOURCE_USERNAME=admin
+      - SPRING_DATASOURCE_PASSWORD=Ecommerce4413!
+    volumes:
+      - shared_data:/shared
+
+  userservice:
+    build:
+      context: ./user_service  # Path to the directory containing the Dockerfile
+      dockerfile: Dockerfile  # Name of the Dockerfile
+    ports:
+      - "8090:8090"
+    container_name: userservice
+    depends_on:
+      - database
+    networks:
+      - my-spring-network
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://ecommercedb.c25xj0lpmeiu.us-east-2.rds.amazonaws.com:3306/ecommercedb
+      - SPRING_DATASOURCE_USERNAME=admin
+      - SPRING_DATASOURCE_PASSWORD=Ecommerce4413!
+    volumes:
+      - shared_data:/shared
+
+  paymentservice:
+    build:
+      context: ./payment_service  # Path to the directory containing the Dockerfile
+      dockerfile: Dockerfile  # Name of the Dockerfile
+    ports:
+      - "8093:8903"
+    container_name: paymentservice
+    depends_on:
+      - database
+    networks:
+      - my-spring-network
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://ecommercedb.c25xj0lpmeiu.us-east-2.rds.amazonaws.com:3306/ecommercedb
+      - SPRING_DATASOURCE_USERNAME=admin
+      - SPRING_DATASOURCE_PASSWORD=Ecommerce4413!
+    volumes:
+      - shared_data:/shared
+
+
+networks:
+  my-spring-network:
+    name: my-spring-network
+volumes:
+  db_data:
+    name: RDSdatabase
+  shared_data:
+    name: ecommerceservices
