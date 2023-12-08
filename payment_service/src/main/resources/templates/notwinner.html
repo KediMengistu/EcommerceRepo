@@ -1,39 +1,28 @@
 <!DOCTYPE html>
-<html>
-<head>
-    <title>Payment Unavailable</title>
+<html xmlns:th="http://www.thymeleaf.org">
+<head xmlns:th="http://www.w3.org/1999/xhtml">
+    <meta charset="UTF-8" />
+    <title>Item Catalog</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js"></script>
+    <!-- Include Thymeleaf JavaScript in case you're using th:action in the form -->
+    <script th:src="@{/webjars/thymeleaf/3.0.12.RELEASE/thymeleaf.js}"></script>
     <style>
-        body {
-          font-family: Arial, sans-serif;
-          text-align: center;
-          margin-top: 50px;
+        .row {
+          display: flex;
         }
-        .container {
-          border: 2px solid #ccc; /* Gray border */
-          border-radius: 8px;
-          padding: 20px;
-          max-width: 400px;
-          margin: 0 auto;
+
+        .column {
+          flex: 50%;
+          padding: 10px;
         }
-        .message {
-          font-size: 24px;
-          color: #000; /* Black */
-          margin-bottom: 20px;
-        }
-        .btn {
-          display: inline-block;
-          padding: 10px 20px;
-          font-size: 16px;
-          border: none;
-          border-radius: 5px;
-          text-decoration: none;
-          color: #fff;
-          background-color: #007bff; /* Blue */
-          cursor: pointer;
-          transition: background-color 0.3s;
-        }
-        .btn:hover {
-          background-color: #0056b3; /* Darker blue on hover */
+
+        .right-column {
+          background-color: #f2f2f2;
         }
     </style>
 </head>
@@ -43,7 +32,30 @@
         <p>Sorry, you cannot make the payment.</p>
         <p>Another user has won this item.</p>
     </div>
-    <a href="/ecommerce/catalog/entirecatalog" class="btn">Browse Catalog</a>
+    <button class="btn" id = "mainpage" type="button"> Search Catalog </button>
 </div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function () {
+        // Handle button click
+        $("#mainpage").on("click", function () {
+            // Perform AJAX request
+            $.ajax({
+                  type: "GET",
+                  url: "/ecommerce/catalog/catalogUI/catalogSearchPage", // Replace with your GET endpoint
+                  success: function (data) {
+                      // Handle success of the GET request
+                      // Do something with the data received
+                      console.log(data);
+                  },
+                  error: function (xhr, status, error) {
+                      // Handle error cases for the GET request
+                      console.log("GET request failed: " + xhr.status);
+                  }
+              });
+        });
+    });
+</script>
+
 </body>
 </html>

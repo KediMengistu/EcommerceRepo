@@ -134,46 +134,60 @@
             expdate: $("#expdate").val(),
             securitycode: $("#securitycode").val()
             }
-
           $.ajax({
-            type: "POST",
-            contentType: "application/json",
-            url: "/ecommerce/payment/insertpaymentinfo",
-            data: JSON.stringify(formData),
-            dataType: 'json',
-            success: function (result, textStatus, xhr) {
-                if (xhr.status === 200) {
-                    // Perform a GET request after a successful POST
+                url: '/ecommerce/user/cookieName',
+                type: 'GET',
+                success: function(cookieValue) {
                     $.ajax({
-                        type: "GET",
-                        url: "/your-get-endpoint", // Replace with your GET endpoint
-                        success: function (data) {
-                            // Handle success of the GET request
-                            // Do something with the data received
-                            console.log(data);
-                        },
-                        error: function (xhr, status, error) {
-                            // Handle error cases for the GET request
-                            console.log("GET request failed: " + xhr.status);
+                        url: '/ecommerce/user/sessionChecker',
+                        type: 'GET',
+                        data: { existingSessionId: cookieValue },
+                        success: function(sessionValid) {
+                            if (sessionValid) {
+                              $.ajax({
+                                type: "POST",
+                                contentType: "application/json",
+                                url: "/ecommerce/payment/insertpaymentinfo",
+                                data: JSON.stringify(formData),
+                                dataType: 'json',
+                                success: function (result, textStatus, xhr) {
+                                    if (xhr.status === 200) {
+                                        // Perform a GET request after a successful POST
+                                        $.ajax({
+                                            type: "GET",
+                                            url: "/your-get-endpoint", // Replace with your GET endpoint
+                                            success: function (data) {
+                                                // Handle success of the GET request
+                                                // Do something with the data received
+                                                console.log(data);
+                                            },
+                                            error: function (xhr, status, error) {
+                                                // Handle error cases for the GET request
+                                                console.log("GET request failed: " + xhr.status);
+                                            }
+                                        });
+                                    } else {
+                                        $("#postResultDiv").html("Post Successful <br>");
+                                    }
+                                    console.log(result);
+                                },
+                                error: function (xhr, status, error) {
+                                    // This function handles any error occurred during the AJAX call,
+                                    // including HTTP error statuses like 4xx or 5xx.
+
+                                    if (xhr.status === 200) {
+                                        // Handle specific error cases based on the response status code (if needed)
+                                    } else {
+                                        $("#postResultDiv").html("<strong>Error: " + xhr.status + "</strong>");
+                                    }
+                                    console.log(xhr);
+                                },
+
+                              });
+                            }
                         }
-                    });
-                } else {
-                    $("#postResultDiv").html("Post Successful <br>");
+                     }
                 }
-                console.log(result);
-            },
-            error: function (xhr, status, error) {
-                // This function handles any error occurred during the AJAX call,
-                // including HTTP error statuses like 4xx or 5xx.
-
-                if (xhr.status === 200) {
-                    // Handle specific error cases based on the response status code (if needed)
-                } else {
-                    $("#postResultDiv").html("<strong>Error: " + xhr.status + "</strong>");
-                }
-                console.log(xhr);
-            },
-
           });
         }
 
