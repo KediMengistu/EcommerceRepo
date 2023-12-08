@@ -188,9 +188,9 @@
                             success: function(user) {
                                 if (user != null && user.auctionid == auctionid) {
                                     clearInterval(auctionCheckInterval); // Stop the interval
-                                    window.location.href = 'http://localhost:8222/ecommerce/auction/auctionUI/auctionEndPage';
+                                    window.location.href = 'http://localhost:8222/ecommerce/auction/auctionUI/auctionEndPage?auctionid=' + parseInt(auctionid, 10) + '&itemid=' + parseInt(itemid, 10) + '&userid=' + user.userid;
                                 } else {
-                                    alert('You did not submit a bid to the auction - we will redirect you back to the catalog start page.');
+                                    alert('You did not submit a valid bid - we will redirect you back to the catalog start page.');
                                     clearInterval(auctionCheckInterval); // Stop the interval
                                     window.location.href = 'http://localhost:8222/ecommerce/catalog/catalogUI/catalogSearchPage';
                                 }
