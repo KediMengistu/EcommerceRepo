@@ -134,26 +134,40 @@
    </div> -->
 
 
-  <button class="btn" type="button"> Back to main page </button>
+  <button class="btn" id = "mainpage" type="button"> Search Catalog </button>
 </div>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script>
     $(document).ready(function () {
         // Handle button click
-        $("#paymentButton").on("click", function () {
+        $("#mainpage").on("click", function () {
             // Perform AJAX request
             $.ajax({
-                type: "POST",
-                url: "/your-endpoint-url", // Replace with your server endpoint
-                success: function (response) {
-                    // Handle success
-                    // Redirect to another page (assuming response contains the URL)
-                    window.location.href = response.redirectUrl; // Replace with your response property containing the URL
-                },
-                error: function (xhr, status, error) {
-                    // Handle error
-                    console.log(xhr.responseText);
-                    // Show error message or handle the error as needed
+                url: '/ecommerce/user/cookieName',
+                type: 'GET',
+                success: function(cookieValue) {
+                    $.ajax({
+                        url: '/ecommerce/user/sessionChecker',
+                        type: 'GET',
+                        data: { existingSessionId: cookieValue },
+                        success: function(sessionValid) {
+                            if (sessionValid) {
+                              $.ajax({
+                                  type: "GET",
+                                  url: "/ecommerce/catalog/catalogUI/catalogSearchPage", // Replace with your GET endpoint
+                                  success: function (data) {
+                                      // Handle success of the GET request
+                                      // Do something with the data received
+                                      console.log(data);
+                                  },
+                                  error: function (xhr, status, error) {
+                                      // Handle error cases for the GET request
+                                      console.log("GET request failed: " + xhr.status);
+                                  }
+                              });
+                            }
+                        }
+                    });
                 }
             });
         });

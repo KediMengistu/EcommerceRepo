@@ -210,19 +210,20 @@ public class PaymentService {
     }
 
     public String getreciept(int paymentid, int itemid, int userid, Model model) {
-        Receipt receipt = receiptRepository.findByauctionid(itemid).get();
+        Optional<Receipt> receipt = receiptRepository.findByauctionid(itemid);
         Optional<Payment> payment = paymentRepository.findById(paymentid);
 
-        if(userid != receipt.getPayerid() || payment.get().getReceiptid() != receipt.getReceiptid())
+        if(payment.isEmpty() || receipt.isEmpty())
+            return "notpaid";
+        if(userid != receipt.get().getPayerid() || payment.get().getReceiptid() != receipt.get().getReceiptid())
             return "false";
 
-        if(payment.isEmpty())
-            return "notpaid";
+
 
         User user = userclient.findPayerFromId(userid);
          Reciept receiptobject  = new Reciept(user.getFirstname(), user.getLastname(),
                 user.getStreetname(), user.getStreetnumber(), user.getCity(),
-                user.getCountry(), user.getPostalcode(), receipt.getItemname(),
+                user.getCountry(), user.getPostalcode(), receipt.get().getItemname(),
                 itemid, payment.get().getTotalpaid(), 10);
 
         model.addAttribute("winner", receiptobject);
