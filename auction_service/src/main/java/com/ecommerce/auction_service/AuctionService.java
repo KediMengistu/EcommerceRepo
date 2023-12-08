@@ -455,6 +455,35 @@ public class AuctionService {
         return result;
     }
 
+    public String isValidExpired(int id) {
+        Optional<Auction> opAuction = auctionRepository.findById(id);
+        Auction auction = null;
+        String result = "";
+        if(opAuction.isEmpty()){
+            result = "Non-existent";
+        }
+        else{
+            auction = opAuction.get();
+            //bid and expired - serve new page
+            if(auction.getHighestbidderid()!=0 && auction.isExpired()==true){
+                result = "Serve New Page";
+            }
+            //no bid and expired - invalid - dont serve new page at all - go back.
+            else if(auction.getHighestbidderid()==0 && auction.isExpired()==true){
+                result = "Go Back";
+            }
+            //bid and not yet expired - dont serve page yet but will.
+            else if(auction.getHighestbidderid()!=0 && auction.isExpired()==false){
+                result = "Don't Serve Yet";
+            }
+            //no bid and not yet expired - dont serve page yet - may or may not.
+            else {
+                result = "May or May not Serve ";
+            }
+        }
+        return result;
+    }
+
     //this will delete an auction.
     public void deleteAuctionAndCat(int auctionid) {
         //local fields.

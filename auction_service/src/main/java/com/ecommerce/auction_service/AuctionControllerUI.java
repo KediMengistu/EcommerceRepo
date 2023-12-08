@@ -41,6 +41,17 @@ public class AuctionControllerUI {
         }
     }
 
+    @GetMapping("/auctionEndPage")
+    public String auctionEndPage(@CookieValue(value = "session_id", required = false) String existingSessionId) {
+        boolean isValidSession = userClient.sessionChecker(existingSessionId);
+        if(isValidSession){
+            return "auctionEndPage";
+        }
+        else{
+            return "auctionSignOutPage";
+        }
+    }
+
     @GetMapping("/auctionSignOutPage")
     public String auctionSignOutPage(@CookieValue(value = "session_id", required = false) String existingSessionId) {
         boolean isValidSession = userClient.sessionChecker(existingSessionId);

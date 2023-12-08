@@ -56,6 +56,8 @@
         const auctionid = urlParams.get('auctionid');
         const itemid = urlParams.get('itemid');
         let currentPrice = 0; // Global variable for current price
+        let auctionCheckInterval = setInterval(checkAuctionStatus, 1000); // Check every second
+
 
         function updateItemDescription() {
             $.ajax({
@@ -168,6 +170,55 @@
                 },
                 error: function() {
                     alert('Error during the purchase process.');
+                }
+            });
+        }
+
+        function checkAuctionStatus() {
+            $.ajax({
+                url: '/ecommerce/auction/validexpiredauction',
+                type: 'GET',
+                data: { id: auctionid },
+                dataType: 'text',
+                success: function(response) {
+                    if (response === "Serve New Page") {
+                        $.ajax({
+                            url: '/ecommerce/user/userfromsession',
+                            type: 'GET',
+                            success: function(user) {
+                                if (user != null && user.auctionid == auctionid) {
+                                    clearInterval(auctionCheckInterval); // Stop the interval
+                                    window.location.href = 'http://localhost:8222/ecommerce/auction/auctionUI/auctionEndPage';
+                                } else {
+                                    alert('You did not submit a bid to the auction - we will redirect you back to the catalog start page.');
+                                    clearInterval(auctionCheckInterval); // Stop the interval
+                                    window.location.href = 'http://localhost:8222/ecommerce/catalog/catalogUI/catalogSearchPage';
+                                }
+                            },
+                            error: function() {
+                                alert('Error during the authentication process.');
+                                clearInterval(auctionCheckInterval); // Stop the interval
+                                window.location.href = 'http://localhost:8222/ecommerce/catalog/catalogUI/catalogSearchPage';
+                            }
+                        });
+                    }
+                    else if (response === "Go Back") {
+                        alert('Auction expired and had no bids - automatically removed 4');
+                        window.location.href = 'http://localhost:8222/ecommerce/catalog/catalogUI/catalogStartPage';
+                    }
+                    else if (response === "Don't Serve Yet") {
+                        //do nothing
+                    }
+                    else if (response === "May or May not Serve") {
+                        //do nothing
+                    }
+                    else if (response === "Non-existent") {
+                        alert('Auction expired and had no bids - automatically removed 5');
+                        window.location.href = 'http://localhost:8222/ecommerce/catalog/catalogUI/catalogStartPage';
+                    }
+                },
+                error: function(error) {
+                    console.error('Error checking auction status:', error);
                 }
             });
         }

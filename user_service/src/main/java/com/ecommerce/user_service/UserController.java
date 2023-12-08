@@ -5,6 +5,7 @@ import com.ecommerce.user_service.UserSession.UserSessionRepository;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.client.loadbalancer.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
@@ -237,6 +238,22 @@ public class UserController {
     public User getUserFromUsername(@RequestParam int sessionid) {
        return userService.findUserFromSession(sessionid);
     }
+    @GetMapping("/userfromsession")
+    public ResponseEntity<User> usernfromsession(HttpServletResponse response,
+                                                 @CookieValue(value = "session_id", required = false) String existingSessionId){
+        if(existingSessionId!=null){
+            Integer sessionid = Integer.valueOf(existingSessionId);
+            Optional<UserSession> usersession = userSessionRepository.findById(sessionid);
+            if(usersession.isEmpty()==false){
+                User user = userService.getUserFromUserName(usersession.get().getUsername());
+                if(user!=null){
+                    return ResponseEntity.ok(user);
+                }
+            }
+        }
+        return ResponseEntity.ok(null);
+    }
+
 
     //helper method to create session and store in session db and create cookie.
     private void createAndStoreUserSession(String username, HttpServletResponse response) {
@@ -244,10 +261,10 @@ public class UserController {
         newSession.setUsername(username);
         newSession.setCreationDate(LocalDate.now());
         newSession.setCreationTime(LocalTime.now().truncatedTo(ChronoUnit.SECONDS));
-        newSession.setMaxSessionTime(LocalTime.of(0, 1, 0));
+        newSession.setMaxSessionTime(LocalTime.of(0, 4, 0));
 
         LocalDateTime creationDateTime = LocalDateTime.of(newSession.getCreationDate(), newSession.getCreationTime());
-        LocalDateTime endDateTime = creationDateTime.plusHours(0).plusMinutes(1).plusSeconds(0).truncatedTo(ChronoUnit.SECONDS);
+        LocalDateTime endDateTime = creationDateTime.plusHours(0).plusMinutes(4).plusSeconds(0).truncatedTo(ChronoUnit.SECONDS);
 
         newSession.setEndDate(endDateTime.toLocalDate());
         newSession.setEndTime(endDateTime.toLocalTime().truncatedTo(ChronoUnit.SECONDS));
@@ -305,4 +322,7 @@ public class UserController {
                                 @CookieValue(value = "session_id", required = false) String existingSessionId){
         return existingSessionId;
     }
+
+
+
 }

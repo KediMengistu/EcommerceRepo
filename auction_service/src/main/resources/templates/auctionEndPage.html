@@ -2,9 +2,62 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Auction Ended</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f5f5f5;
+            padding-top: 20px;
+        }
+        .main-container {
+            margin: 0 auto;
+            text-align: center;
+        }
+        .info-section {
+            margin-bottom: 20px;
+        }
+        .pay-button {
+            width: 80%;
+            margin: 10px auto;
+        }
+        .sign-out-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: red;
+            color: white;
+            border-color: red;
+        }
+    </style>
 </head>
 <body>
+
+<div class="container main-container">
+    <h1 class="text-center">Auction Ended</h1>
+    <div class="info-section">
+        <h4>Listing Information</h4>
+        <p>Item Description: Example Description</p>
+        <p>Shipping Price: $10.00</p>
+        <p>Additional Expedited Shipping Fee: $5.00</p>
+    </div>
+    <div class="info-section">
+        <h4>Bid Information</h4>
+        <p>Winning Price: $100.00</p>
+        <p>Highest Bidder: Username</p>
+    </div>
+    <div>
+        <button class="btn btn-success pay-button">Pay Default</button>
+        <button class="btn btn-dark pay-button" style="color: white;">Pay Default + Exp. Fee</button>
+    </div>
+</div>
+
+<button class="btn sign-out-button">Sign Out</button>
+
+<!-- Bootstrap JS, Popper.js, and jQuery -->
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.0.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
 
 </body>
 </html>
