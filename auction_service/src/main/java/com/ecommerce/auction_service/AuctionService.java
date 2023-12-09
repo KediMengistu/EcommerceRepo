@@ -484,6 +484,15 @@ public class AuctionService {
         return result;
     }
 
+    public Auction getAuctionFromIdExpired(int id) {
+        if (auctionRepository.findById(id).isPresent()){
+            return auctionRepository.findById(id).get();
+        }
+        else{
+            return null;
+        }
+    }
+
     //this will delete an auction.
     public void deleteAuctionAndCat(int auctionid) {
         //local fields.

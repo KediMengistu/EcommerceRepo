@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>Item Catalog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js"></script>
+    <style>
+        .row {
+            display: flex;
+        }
+        .column {
+            flex: 50%;
+            padding: 10px;
+        }
+        .right-column {
+            background-color: #f2f2f2;
+        }
+        .sign-out-button, .back-to-main-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: red;
+            color: white;
+            border-color: red;
+        }
+        .back-to-main-button {
+            right: 120px;
+            background-color: green;
+            display: none; /* Initially hidden */
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="row">
+        <div class="column">
+            <h2 id="auctionTitle">Auction Result</h2>
+            <!-- Dynamic Fields -->
+            <p>FirstName: <span id="userFname"></span></p>
+            <p>LastName: <span id="userLname"></span></p>
+            <p>Country: <span id="userCountry"></span></p>
+            <p>City: <span id="userCity"></span></p>
+            <p>Street: <span id="userStreet"></span></p>
+            <p>Street Number: <span id="userStreetNumber"></span></p>
+            <p>Postal Code: <span id="userPostalCode"></span></p>
+            <p>Item Name: <span id="itemName"></span></p>
+            <p>Total Shipping: <span id="totalShipping"></span></p>
+            <p>Total Cost: <span id="totalCost"></span></p>
+            <p id="itemIdField" style="display:none;">Item ID: <span id="itemId"></span></p> <!-- New Item ID field -->
+        </div>
+        <div class="column right-column">
+            <h2 id="cardInfoTitle">Enter Card Information</h2>
+            <form id="paymentform">
+                <!-- Form Fields -->
+                <!-- ... existing form fields ... -->
+                <div class="form-group">
+                    <label for="cardnum">Card Number:</label>
+                    <input type="text" class="form-control" id="cardnum" placeholder="Enter Card Number" name="cardnum" required>
+                    <small class="form-text text-muted">Card number must be 9 digits long.</small>
+                </div>
+                <div class="form-group">
+                    <label for="cardfname">First Name:</label>
+                    <input type="text" class="form-control" id="cardfname" placeholder="Enter First Name" name="cardfname" required>
+                    <small class="form-text text-muted">First name cannot be empty.</small>
+                </div>
+                <div class="form-group">
+                    <label for="cardlname">Last Name:</label>
+                    <input type="text" class="form-control" id="cardlname" placeholder="Enter Last Name" name="cardlname" required>
+                    <small class="form-text text-muted">Last name cannot be empty.</small>
+                </div>
+                <div class="form-group">
+                    <label for="expdate">Expiration Date:</label>
+                    <input type="date" class="form-control" id="expdate" name="expdate" required>
+                    <small class="form-text text-muted">Expiration date must be in the future.</small>
+                </div>
+                <div class="form-group">
+                    <label for="securitycode">Security Code:</label>
+                    <input type="number" class="form-control" id="securitycode" placeholder="Enter Security Code" name="securitycode" required>
+                    <small class="form-text text-muted">Security code must be 3 digits long.</small>
+                </div>
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </form>
+            <div id="shippingDetails" style="display:none;">
+                <h4>Shipping Details</h4>
+                <p>The item will be shipped within 10 days.</p>
+            </div>
+        </div>
+    </div>
+    <div id="paymentMessage" class="text-center mt-3 mb-3"></div> <!-- Placeholder for the payment message -->
+    <button class="btn sign-out-button" id="signOutButton">Sign Out</button>
+    <button class="btn back-to-main-button" id="backToMainPageButton">Back to Main Page</button>
+</div>
+<script>
+    $(document).ready(function () {
+        // Global variables within the scope of this script
+        var auctionId, itemId, userId, receiptId, paytype, total;
+        var userObject, auctionObject, catalogObject, receiptObject;
+
+        // Extract URL parameters and save them as global variables
+        var urlParams = new URLSearchParams(window.location.search);
+        auctionId = urlParams.get('auctionid');
+        itemId = urlParams.get('itemid');
+        userId = urlParams.get('userid');
+        receiptId = urlParams.get('receiptid');
+        payType = urlParams.get('payType');
+
+        // AJAX calls to fetch data
+        fetchUser();
+        fetchAuction();
+        fetchCatalog();
+        fetchReceipt();
+
+        function fetchUser() {
+            $.ajax({
+                url: '/ecommerce/user/id_getuser', // Endpoint for getting user data
+                type: 'GET',
+                data: { id: userId }, // Pass userId as a request parameter
+                success: function (user) {
+                    if (user == null) {
+                        alert('Error with processing user information');
+                    } else {
+                        userObject = user;
+                        populateUserFields(user);
+                    }
+                },
+                error: function () {
+                    alert('Error fetching user data');
+                }
+            });
+        }
+
+        function fetchAuction() {
+            $.ajax({
+                url: '/ecommerce/auction/id_auction_expired',
+                type: 'GET',
+                data: { id: auctionId },
+                success: function (auction) {
+                    if (auction == null) {
+                        alert('Error with processing auction information');
+                    } else {
+                        auctionObject = auction;
+                        // populate fields based on auction data if needed
+                    }
+                },
+                error: function () {
+                    alert('Error fetching auction data');
+                }
+            });
+        }
+
+        function fetchCatalog() {
+            $.ajax({
+                url: '/ecommerce/catalog/searchByIdExpired',
+                type: 'GET',
+                data: { id: itemId },
+                success: function (catalog) {
+                    if (catalog == null) {
+                        alert('Error with processing catalog information');
+                    } else {
+                        catalogObject = catalog;
+                        populateCatalogFields(catalog);
+                    }
+                },
+                error: function () {
+                    alert('Error fetching catalog data');
+                }
+            });
+        }
+
+        function fetchReceipt() {
+            $.ajax({
+                url: '/ecommerce/payment/id_getreceipt',
+                type: 'GET',
+                data: { auctionid: auctionId },
+                success: function (receipt) {
+                    if (receipt == null) {
+                        alert('Error with processing receipt information');
+                    } else {
+                        receiptObject = receipt;
+                        populateReceiptFields(receipt);
+                    }
+                },
+                error: function () {
+                    alert('Error fetching receipt data');
+                }
+            });
+        }
+
+        function populateUserFields(user) {
+            $('#userFname').text(user.firstname);
+            $('#userLname').text(user.lastname);
+            $('#userCountry').text(user.country);
+            $('#userCity').text(user.city);
+            $('#userStreet').text(user.streetname);
+            $('#userStreetNumber').text(user.streetnumber);
+            $('#userPostalCode').text(user.postalcode);
+            // Add more fields if necessary
+        }
+
+        function populateCatalogFields(catalog) {
+            $('#itemName').text(catalog.itemname);
+            $('#itemShippingPrice').text(catalog.shippingprice);
+            // Populate other catalog-related fields here, if needed
+        }
+
+        function populateReceiptFields(receipt) {
+            console.log("Receipt data:", receipt); // Debugging line
+            total = receipt.defaulttotal;
+            $('#totalCost').text('$' + total.toFixed(2)); // Ensure total cost is shown
+            $('#totalShipping').text('$' + receipt.shippingprice.toFixed(2)); // Assuming shipping price is part of the receipt object
+
+            if (paytype === "expedited") {
+                total += receipt.expeditedcost;
+                $('#totalCost').text('$' + total.toFixed(2)); // Update total cost if expedited
+            }
+        }
+
+        // Payment form submission logic
+        $("#paymentform").submit(function (event) {
+            event.preventDefault();
+
+            // First AJAX call to get the cookie
+            $.ajax({
+                url: '/ecommerce/user/cookieName',
+                type: 'GET',
+                success: function(cookieValue) {
+                    // Second AJAX call to check session validity
+                    $.ajax({
+                        url: '/ecommerce/user/sessionChecker',
+                        type: 'GET',
+                        data: { existingSessionId: cookieValue },
+                        success: function(sessionValid) {
+                            if (sessionValid) {
+                                // Session is valid, proceed with payment AJAX request
+                                var formData = {
+                                    username: userObject.username, // Use username from the global user object
+                                    paidauctionid: auctionId,
+                                    cardnum: parseInt($("#cardnum").val(), 10),
+                                    cardfname: $("#cardfname").val(),
+                                    cardlname: $("#cardlname").val(),
+                                    expdate: $("#expdate").val(),
+                                    securitycode: parseInt($("#securitycode").val(), 10)
+                                };
+
+                                $.ajax({
+                                    url: '/ecommerce/payment/insertpaymentinfo',
+                                    type: 'POST',
+                                    contentType: 'application/json',
+                                    data: JSON.stringify(formData),
+                                    dataType: 'json',
+                                    success: function(response) {
+                                        if(response) {
+                                            // On successful payment, update the UI dynamically
+                                            $('#paymentform').hide(); // Hide the payment form
+                                            $('#auctionTitle').text("Receipt"); // Change title
+                                            $('#totalShipping').parent().hide(); // Hide shipping info
+                                            $('#cardInfoTitle').text("Shipping Details"); // Change card info title
+                                            $('#shippingDetails').show(); // Show shipping details
+                                            $('#itemIdField').show(); // Show item ID field
+                                            $('#itemId').text(itemId); // Set item ID text
+                                            $('#backToMainPageButton').show(); // Show back to main page button
+                                            $('#signOutButton').hide(); // Hide the sign-out button
+
+                                            // Update message
+                                            $("#paymentMessage").html('<div class="alert alert-success" role="alert">Payment successful. Receipt details updated.</div>');
+                                        } else {
+                                            // Handle payment failure
+                                            $("#paymentMessage").html('<div class="alert alert-danger" role="alert">Payment failed. Please try again.</div>');
+                                        }
+                                    },
+                                    error: function() {
+                                        // Handle error
+                                        $("#paymentMessage").html('<div class="alert alert-danger" role="alert">Error processing payment.</div>');
+                                    }
+                                });
+                            } else {
+                                // Session is not valid, handle accordingly
+                                window.location.href = 'http://localhost:8222/ecommerce/payment/paymentUI/paymentSignOutPage';
+                            }
+                        },
+                        error: function() {
+                            // Handle error
+                            alert('Error during session check.');
+                        }
+                    });
+                },
+                error: function() {
+                    // Handle error
+                    alert('Error getting cookie.');
+                }
+            });
+        });
+
+        $('#backToMainPageButton').click(function() {
+            $.ajax({
+                url: '/ecommerce/user/userUI/userStartPage',
+                type: 'GET',
+                success: function(response) {
+                    window.location.href = 'http://localhost:8222/ecommerce/user/userUI/userStartPage';
+                },
+                error: function() {
+                    alert('Error during sign out.');
+                }
+            });
+        });
+
+        $('#signOutButton').click(function() {
+            $.ajax({
+                url: '/ecommerce/payment/paymentUI/paymentSignOutPage',
+                type: 'GET',
+                success: function(response) {
+                    window.location.href = 'http://localhost:8222/ecommerce/payment/paymentUI/paymentSignOutPage';
+                },
+                error: function() {
+                    alert('Error during sign out.');
+                }
+            });
+        });
+    });
+</script>
+</body>
+</html>

@@ -28,6 +28,11 @@ public class AuctionController {
         return auctionService.getAuctionFromId(id);
     }
 
+    @GetMapping("/id_auction_expired")
+    public Auction getAuctionFromIdExpired(@RequestParam int id){
+        return auctionService.getAuctionFromIdExpired(id);
+    }
+
     @GetMapping("/validexpiredauction")
     public ResponseEntity<String> isValidExpired(@RequestParam int id){
         return ResponseEntity.ok(auctionService.isValidExpired(id));

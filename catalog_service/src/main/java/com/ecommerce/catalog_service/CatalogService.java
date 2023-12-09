@@ -242,4 +242,13 @@ public class CatalogService {
         }
         return true;
     }
+
+    public Catalog searchCatalogFromIdExpired(int id) {
+        if (catalogRepository.findById(id).isPresent()){
+            return catalogRepository.findById(id).get();
+        }
+        else{
+            return null;
+        }
+    }
 }

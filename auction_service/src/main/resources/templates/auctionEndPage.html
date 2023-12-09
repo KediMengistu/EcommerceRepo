@@ -29,35 +29,257 @@
             color: white;
             border-color: red;
         }
+        /* Add this to your existing styles */
+        .disclaimer {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f8d7da; /* Light red background color */
+            color: #721c24; /* Dark red text color */
+            border: 1px solid #f5c6cb; /* Border color */
+            border-radius: 5px; /* Rounded corners */
+        }
     </style>
 </head>
 <body>
 
 <div class="container main-container">
     <h1 class="text-center">Auction Ended</h1>
-    <div class="info-section">
-        <h4>Listing Information</h4>
-        <p>Item Description: Example Description</p>
-        <p>Shipping Price: $10.00</p>
-        <p>Additional Expedited Shipping Fee: $5.00</p>
+    <div class="info-section" id="listing-info">
+        <!-- Listing information will be updated here -->
     </div>
-    <div class="info-section">
-        <h4>Bid Information</h4>
-        <p>Winning Price: $100.00</p>
-        <p>Highest Bidder: Username</p>
+    <div class="info-section" id="bid-info">
+        <!-- Bid information will be updated here -->
     </div>
     <div>
-        <button class="btn btn-success pay-button">Pay Default</button>
-        <button class="btn btn-dark pay-button" style="color: white;">Pay Default + Exp. Fee</button>
+        <button class="btn btn-success pay-button" id="payDefault">Pay Default</button>
+        <button class="btn btn-dark pay-button" id="payPlus" style="color: white;">Pay Default + Exp. Fee</button>
+    </div>
+    <div class="disclaimer">
+        <p>If you are redirected here and you are not the winner, select either option to be released from the previous auction. If you are, you must proceed further.</p>
     </div>
 </div>
 
-<button class="btn sign-out-button">Sign Out</button>
+<button class="btn sign-out-button" id="signOutButton">Sign Out</button>
 
 <!-- Bootstrap JS, Popper.js, and jQuery -->
-<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.0.2/dist/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
 
+<!-- ... (your existing HTML code) ... -->
+
+<script>
+    $(document).ready(function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const auctionid = parseInt(urlParams.get('auctionid'), 10);
+        const itemid = parseInt(urlParams.get('itemid'), 10);
+        const userid = parseInt(urlParams.get('userid'), 10);
+
+        // Global variables to store responses
+        let catalogItemExpired, auctionItemExpired, user;
+
+        // Function to perform AJAX calls and store responses
+        function loadData(callback) {
+            // AJAX call for expired auction item
+            $.ajax({
+                url: '/ecommerce/auction/id_auction_expired',
+                type: 'GET',
+                data: { id: auctionid },
+                dataType: 'json',
+                success: function(response) {
+                    auctionItemExpired = response;
+                    updateExpiredBidInfo();
+                },
+                error: function() {
+                    console.error('Error loading expired auction item.');
+                }
+            });
+
+            // AJAX call for expired catalog item
+            $.ajax({
+                url: '/ecommerce/catalog/searchByIdExpired',
+                type: 'GET',
+                data: { id: itemid },
+                dataType: 'json',
+                success: function(response) {
+                    catalogItemExpired = response;
+                    updateExpiredListingInfo();
+                },
+                error: function() {
+                    console.error('Error loading expired catalog item.');
+                }
+            });
+
+            // AJAX call for user
+            $.ajax({
+                url: '/ecommerce/user/id_getuser',
+                type: 'GET',
+                data: { id: userid },
+                dataType: 'json',
+                success: function(response) {
+                    user = response;
+                    callback();
+                },
+                error: function() {
+                    console.error('Error loading user information.');
+                }
+            });
+        }
+
+        // Function to update expired listing information on the page
+        function updateExpiredListingInfo() {
+            $('#listing-info').html(
+                `<h4>Listing Information</h4>
+                 <p>Item Description: ${catalogItemExpired.itemdescription}</p>
+                 <p>Shipping Price: $${catalogItemExpired.shippingprice}</p>
+                 <p>Additional Expedited Shipping Fee: $${catalogItemExpired.expeditedcost}</p>`
+            );
+        }
+
+        function updateExpiredBidInfo() {
+            let winningPrice;
+
+            if (auctionItemExpired.auctiontype === "Forward") {
+                winningPrice = auctionItemExpired.highestbid;
+            } else if (auctionItemExpired.auctiontype === "Dutch") {
+                winningPrice = auctionItemExpired.startprice;
+            }
+
+            // Check if 'user' is defined before accessing its properties
+            if (user && user.username) {
+                $('#bid-info').html(
+                    `<h4>Bid Information</h4>
+                     <p>Winning Price: $${winningPrice}</p>
+                     <p>Highest Bidder: ${user.username}</p>`
+                );
+            } else {
+                // Handle the case where 'user' is not defined or doesn't have 'username'
+                $('#bid-info').html('<p>Error: Unable to retrieve user information.</p>');
+            }
+        }
+
+        // Call the function to load data upon page load
+        loadData(function() {
+            // Additional actions or updates can be performed here if needed
+        });
+
+        // Click event handler for "Place Bid" button
+        $('#payDefault').click(function() {
+            // Your first AJAX call to get the cookie
+            $.ajax({
+                url: '/ecommerce/user/cookieName',
+                type: 'GET',
+                success: function(cookieValue) {
+                    // Your second AJAX call to check session validity
+                    $.ajax({
+                        url: '/ecommerce/user/sessionChecker',
+                        type: 'GET',
+                        data: { existingSessionId: cookieValue },
+                        success: function(sessionValid) {
+                            if (sessionValid) {
+                                // Session is valid, proceed with your nested AJAX request here
+                                $.ajax({
+                                    url: '/ecommerce/payment/id_getreceipt',
+                                    type: 'GET',
+                                    data: { auctionid: auctionid },
+                                    success: function(result) {
+                                        if(result!=null && result.payerid==user.userid && user.auctionid==auctionid){
+                                            var paytype = "default";
+                                            window.location.href = 'http://localhost:8222/ecommerce/payment/paymentUI/paymentSubmissionPage?auctionid=' + auctionid + '&itemid=' + itemid + '&userid=' + user.userid + '&receiptid=' + result.receiptid + '&paytype=' + paytype;
+                                        }
+                                        else{
+                                            alert('Not the winner - you can now proceed to bid on any other auction.');
+                                            window.location.href = 'http://localhost:8222/ecommerce/catalog/catalogUI/catalogStartPage';
+                                        }
+                                    },
+                                    error: function() {
+                                        alert('Not the winner - you can now proceed to bid on any other auction.');
+                                    }
+                                });
+                            } else {
+                                // Session is not valid, handle accordingly
+                                window.location.href = 'http://localhost:8222/ecommerce/auction/auctionUI/auctionSignOutPage';
+                            }
+                        },
+                        error: function() {
+                            // Handle error
+                            alert('Error during session check.');
+                        }
+                    });
+                },
+                error: function() {
+                    // Handle error
+                    alert('Error getting cookie.');
+                }
+            });
+        });
+
+        // Click event handler for "Place Bid" button
+        $('#payPlus').click(function() {
+            // Your first AJAX call to get the cookie
+            $.ajax({
+                url: '/ecommerce/user/cookieName',
+                type: 'GET',
+                success: function(cookieValue) {
+                    // Your second AJAX call to check session validity
+                    $.ajax({
+                        url: '/ecommerce/user/sessionChecker',
+                        type: 'GET',
+                        data: { existingSessionId: cookieValue },
+                        success: function(sessionValid) {
+                            if (sessionValid) {
+                                // Session is valid, proceed with your nested AJAX request here
+                                $.ajax({
+                                    url: '/ecommerce/user/id_getreceipt',
+                                    type: 'GET',
+                                    data: { auctionid: auctionid },
+                                    success: function(result) {
+                                        if(result!=null && result.payerid==user.userid && user.auctionid==auctionid){
+                                            var paytype = "expedited";
+                                            window.location.href = 'http://localhost:8222/ecommerce/payment/paymentUI/paymentSubmissionPage?auctionid=' + auctionid + '&itemid=' + itemid + '&userid=' + user.userid + '&receiptid=' + result.receiptid + '&paytype=' + paytype;
+                                        }
+                                        else{
+                                            alert('Not the winner - you can now proceed to bid on any other auction.');
+                                            window.location.href = 'http://localhost:8222/ecommerce/catalog/catalogUI/catalogStartPage';
+                                        }
+                                    },
+                                    error: function() {
+                                        alert('Not the winner - you can now proceed to bid on any other auction.');
+                                    }
+                                });
+                            } else {
+                                // Session is not valid, handle accordingly
+                                window.location.href = 'http://localhost:8222/ecommerce/auction/auctionUI/auctionSignOutPage';
+                            }
+                        },
+                        error: function() {
+                            // Handle error
+                            alert('Error during session check.');
+                        }
+                    });
+                },
+                error: function() {
+                    // Handle error
+                    alert('Error getting cookie.');
+                }
+            });
+        });
+
+
+        $('#signOutButton').click(function() {
+            $.ajax({
+                url: '/ecommerce/auction/auctionUI/auctionSignOutPage',
+                type: 'GET',
+                success: function(response) {
+                    window.location.href = 'http://localhost:8222/ecommerce/auction/auctionUI/auctionSignOutPage';
+                },
+                error: function() {
+                    alert('Error during sign out.');
+                }
+            });
+        });
+    });
+</script>
 </body>
 </html>
+

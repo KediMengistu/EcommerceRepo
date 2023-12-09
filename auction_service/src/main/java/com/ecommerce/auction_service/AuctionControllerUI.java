@@ -20,7 +20,7 @@ public class AuctionControllerUI {
     }
 
     @GetMapping("/auctionForwardPage")
-    public String auctionForwardPage(@RequestParam int auctionid, @CookieValue(value = "session_id", required = false) String existingSessionId) {
+    public String auctionForwardPage(@RequestParam int auctionid, @RequestParam int itemid, @CookieValue(value = "session_id", required = false) String existingSessionId) {
         boolean isValidSession = userClient.sessionChecker(existingSessionId);
         if(isValidSession){
             return "auctionForwardPage";
@@ -31,7 +31,7 @@ public class AuctionControllerUI {
     }
 
     @GetMapping("/auctionDutchPage")
-    public String auctionDutchPage(@RequestParam int auctionid, @CookieValue(value = "session_id", required = false) String existingSessionId) {
+    public String auctionDutchPage(@RequestParam int auctionid, @RequestParam int itemid, @CookieValue(value = "session_id", required = false) String existingSessionId) {
         boolean isValidSession = userClient.sessionChecker(existingSessionId);
         if(isValidSession){
             return "auctionDutchPage";
@@ -42,7 +42,8 @@ public class AuctionControllerUI {
     }
 
     @GetMapping("/auctionEndPage")
-    public String auctionEndPage(@CookieValue(value = "session_id", required = false) String existingSessionId) {
+    public String auctionEndPage(@RequestParam int auctionid, @RequestParam int itemid, @RequestParam int userid,
+                                 @CookieValue(value = "session_id", required = false) String existingSessionId) {
         boolean isValidSession = userClient.sessionChecker(existingSessionId);
         if(isValidSession){
             return "auctionEndPage";

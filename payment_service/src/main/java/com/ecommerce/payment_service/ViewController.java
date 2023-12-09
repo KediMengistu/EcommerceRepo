@@ -23,6 +23,10 @@ public class ViewController {
     public String getpaymentpage(@PathVariable int itemid, @RequestParam int userid, @RequestParam boolean expedited, Model model) {
         return paymentService.getpaymentpage(itemid, userid, expedited, model);
     }
+//    @PostMapping("/insertpaymentinfo")
+//    String payForAuctionedOffItem(@RequestBody PaymentInfo paymentInfo, Model model){
+//        return paymentService.payForItem(paymentInfo, model);
+//    }
     @PostMapping("/insertpaymentinfo")
     String payForAuctionedOffItem(@RequestBody PaymentInfo paymentInfo, Model model){
         return paymentService.payForItem(paymentInfo, model);

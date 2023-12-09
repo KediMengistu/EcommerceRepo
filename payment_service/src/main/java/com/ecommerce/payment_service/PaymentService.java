@@ -2,6 +2,7 @@ package com.ecommerce.payment_service;
 
 import com.ecommerce.payment_service.Client.AuctionClient;
 import com.ecommerce.payment_service.Client.UserClient;
+import com.ecommerce.payment_service.IncomingRequestObjectBodies.Bid;
 import com.ecommerce.payment_service.IncomingRequestObjectBodies.CatalogAndAuctionRequestBody;
 import com.ecommerce.payment_service.IncomingRequestObjectBodies.PaymentInfo;
 import com.ecommerce.payment_service.OtherServiceObjects.Auction;
@@ -84,6 +85,19 @@ public class PaymentService {
                 //expedited cost for paid item derived from catalog table.
                 receipt.setExpeditedcost(cat.getExpeditedcost());
 
+                //removing non-winners from auction.
+                Bid bid;
+                List<Bid> bidList = auctionclient.getallbids();
+                for(int i=0; i< bidList.size(); i++){
+                    bid = bidList.get(i);
+                    if(bid!=null && bid.getAuctionid()==auction.getAuctionid()){
+                        if(bid.getBidderid()!=auction.getHighestbidderid()){
+                            User nonwinner = userclient.getUserFromId(bid.getBidderid());
+                            userclient.setOutOfAuction(nonwinner.getUsername());
+                        }
+                    }
+                }
+
                 //obtaining default total.
                 //default includes no expedited shipping
                 totalcost = cat.getShippingprice() + auction.getHighestbid();
@@ -101,7 +115,7 @@ public class PaymentService {
     }
 
     //used to pay for item that was won.
-    public String payForItem(PaymentInfo paymentInfo,Model model) {
+    public boolean payForItem(PaymentInfo paymentInfo,Model model) {
         //local fields.
         User user;
         Optional<Receipt> opReceipt;
@@ -114,7 +128,7 @@ public class PaymentService {
 
         //user does not exist, so cannot pay for item.
         if(user==null){
-            return "false";
+            return false;
         }
         //user does exist, so can potentially pay for item.
         else{
@@ -123,7 +137,7 @@ public class PaymentService {
 
             //there does not exist a receipt entry corresponding to the auction with auctionid.
             if(opReceipt.isEmpty()){
-                return "false";
+                return false;
             }
             //receipt entry exists with the unique auctionid.
             else{
@@ -132,7 +146,7 @@ public class PaymentService {
 
                 //checking to see if there doesnt already exist a payment corresponding to the receipt.
                 if(!paymentRepository.findByreceiptid(receipt.getReceiptid()).isEmpty()) {
-                    return "paidfor";
+                    return false;
                 }
                 else{
                     //check to see if the user corresponds to the receipt with auctionid.
@@ -151,14 +165,16 @@ public class PaymentService {
                             pay.setTotalpaid(paymentInfo.getTotalpaid());
                             paymentRepository.save(pay);
 
+                            //Now remove the winning person from the auction
+                            userclient.setOutOfAuction(user.getUsername());
+
                             //once payment for auction is confirmed, auction can finally be removed.
                             auctionclient.deleteAuction(receipt.getAuctionid());
-                            return getreciept(pay.getPaymentid(), receipt.getAuctionid(), user.getUserid(), model);
+                            return true;
                         }
                     }
-                    return "notwinner";
+                    return false;
                 }
-
             }
         }
     }
@@ -187,7 +203,7 @@ public class PaymentService {
         return paymentRepository.findAll();
     }
 
-    public String getpaymentpage(int itemid, int userid, boolean expidited, Model model) {
+    public String getpaymentpage(PaymentInfo paymentInfo) {
          //check for sessionid/check user
         Receipt receipt = receiptRepository.findByauctionid(itemid).get();
 
@@ -213,15 +229,14 @@ public class PaymentService {
         Optional<Receipt> receipt = receiptRepository.findByauctionid(itemid);
         Optional<Payment> payment = paymentRepository.findById(paymentid);
 
-        if(payment.isEmpty() || receipt.isEmpty())
+        if (payment.isEmpty() || receipt.isEmpty())
             return "notpaid";
-        if(userid != receipt.get().getPayerid() || payment.get().getReceiptid() != receipt.get().getReceiptid())
+        if (userid != receipt.get().getPayerid() || payment.get().getReceiptid() != receipt.get().getReceiptid())
             return "false";
 
 
-
         User user = userclient.findPayerFromId(userid);
-         Reciept receiptobject  = new Reciept(user.getFirstname(), user.getLastname(),
+        Reciept receiptobject = new Reciept(user.getFirstname(), user.getLastname(),
                 user.getStreetname(), user.getStreetnumber(), user.getCity(),
                 user.getCountry(), user.getPostalcode(), receipt.get().getItemname(),
                 itemid, payment.get().getTotalpaid(), 10);
@@ -229,5 +244,15 @@ public class PaymentService {
         model.addAttribute("winner", receiptobject);
 
         return "reciept";
+    }
+
+    public Receipt getReceiptFromId(int auctionid) {
+        List<Receipt> receiptList = receiptRepository.findAll();
+        for(Receipt r: receiptList){
+            if(r!=null && r.getAuctionid()==auctionid){
+                return r;
+            }
+        }
+        return null;
     }
 }
