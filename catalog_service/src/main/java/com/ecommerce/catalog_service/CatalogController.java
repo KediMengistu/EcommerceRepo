@@ -33,6 +33,11 @@ public class CatalogController {
         return catalogService.searchCatalogById(id);
     }
 
+    @GetMapping("/searchByIdExpired")
+    public Catalog searchCatalogFromIdExpired(@RequestParam int id){
+        return catalogService.searchCatalogFromIdExpired(id);
+    }
+
     @GetMapping("/search")
     @ResponseBody
     public List<Catalog> searchCatalog(@RequestParam String itemname) {

@@ -11,6 +11,14 @@
             bottom: 20px;
             right: 20px;
         }
+
+        /* Added styles for the Buy Now button */
+        #buyNowButton {
+            width: 200px; /* Set the width to 2 times the original width */
+            margin: 0 auto; /* Center the button */
+            display: block; /* Make it a block-level element to center it */
+            margin-top: 20px; /* Adjust top margin for spacing */
+        }
     </style>
 </head>
 <body>
@@ -27,10 +35,10 @@
             <div id="bid-conditions">
                 <h2 class="mt-4">Conditions and Guidelines For Dutch Bid</h2>
                 <ul>
-                    <li>Buy now indicates the input Dutch bid is equal the current price.</li>
+                    <li>Buy now indicates the input Dutch bid is equal to the current price.</li>
                     <li>The current price of the item will be incrementally reduced over time.</li>
-                    <li>***To ensure accuracy, refresh page to retrieve the current price in real time.***</li>
-                    <li>A failed bid signifies you did not refresh page to get accurate price to bid with.</li>
+                    <li>***To ensure accuracy, refresh the page to retrieve the current price in real time.***</li>
+                    <li>A failed bid signifies you did not refresh the page to get an accurate price to bid with.</li>
                     <li>A Bid will fail if you are the Seller of the item.</li>
                     <li>Once you input a valid Bid, you can only bid in that auction until termination.</li>
                 </ul>
@@ -38,7 +46,8 @@
         </div>
 
         <div class="col-md-6">
-            <button type="button" id="buyNowButton" class="btn btn-success">Buy Now</button>
+            <!-- Added the "btn-block" class for Bootstrap to make the button full-width -->
+            <button type="button" id="buyNowButton" class="btn btn-success btn-block">Buy Now</button>
             <div id="bidMessage"></div>
         </div>
     </div>
@@ -55,9 +64,8 @@
         const urlParams = new URLSearchParams(window.location.search);
         const auctionid = urlParams.get('auctionid');
         const itemid = urlParams.get('itemid');
-        let currentPrice = 0; // Global variable for current price
+        updateItemDescription(); // Call this function on page load
         let auctionCheckInterval = setInterval(checkAuctionStatus, 1000); // Check every second
-
 
         function updateItemDescription() {
             $.ajax({
@@ -163,7 +171,22 @@
                 },
                 success: function(result) {
                     if(result) {
-                        $('#bidMessage').html('<div class="alert alert-success" role="alert">Purchase successful.</div>');
+                        $.ajax({
+                            url: '/ecommerce/user/username_getuser',
+                            type: 'GET',
+                            data: { username: bidderUsername },
+                            success: function(result) {
+                                if(result!=null && result.auctionid == auctionid){
+                                    window.location.href = 'http://localhost:8222/ecommerce/auction/auctionUI/auctionEndPage?auctionid=' + parseInt(auctionid, 10) + '&itemid=' + parseInt(itemid, 10) + '&userid=' + result.userid;
+                                }
+                                else{
+                                    alert('Error during the purchase process.');
+                                }
+                            },
+                            error: function() {
+                                alert('Error during the purchase process.');
+                            }
+                        });
                     } else {
                         $('#bidMessage').html('<div class="alert alert-danger" role="alert">Purchase failed. Ensure to Follow Guidelines.</div>');
                     }
@@ -188,22 +211,23 @@
                             success: function(user) {
                                 if (user != null && user.auctionid == auctionid) {
                                     clearInterval(auctionCheckInterval); // Stop the interval
-                                    window.location.href = 'http://localhost:8222/ecommerce/auction/auctionUI/auctionEndPage?auctionid=' + parseInt(auctionid, 10) + '&itemid=' + parseInt(itemid, 10) + '&userid=' + user.userid;
+                                    window.location.href = 'http://localhost:8222/ecommerce/auction/auctionUI/auctionEndPage?auctionid=' + auctionid + '&itemid=' + itemid + '&userid=' + user.userid;
                                 } else {
                                     alert('You did not submit a valid bid - we will redirect you back to the catalog start page.');
                                     clearInterval(auctionCheckInterval); // Stop the interval
-                                    window.location.href = 'http://localhost:8222/ecommerce/catalog/catalogUI/catalogSearchPage';
+                                    window.location.href = 'http://localhost:8222/ecommerce/catalog/catalogUI/catalogStartPage';
                                 }
                             },
                             error: function() {
                                 alert('Error during the authentication process.');
                                 clearInterval(auctionCheckInterval); // Stop the interval
-                                window.location.href = 'http://localhost:8222/ecommerce/catalog/catalogUI/catalogSearchPage';
+                                window.location.href = 'http://localhost:8222/ecommerce/catalog/catalogUI/catalogStartPage';
                             }
                         });
                     }
                     else if (response === "Go Back") {
-                        alert('Auction expired and had no bids - automatically removed 4');
+                        alert('Auction expired and had no bids - automatically removed');
+                        clearInterval(auctionCheckInterval); // Stop the interval
                         window.location.href = 'http://localhost:8222/ecommerce/catalog/catalogUI/catalogStartPage';
                     }
                     else if (response === "Don't Serve Yet") {
@@ -213,7 +237,8 @@
                         //do nothing
                     }
                     else if (response === "Non-existent") {
-                        alert('Auction expired and had no bids - automatically removed 5');
+                        alert('Auction expired and had no bids - automatically removed');
+                        clearInterval(auctionCheckInterval); // Stop the interval
                         window.location.href = 'http://localhost:8222/ecommerce/catalog/catalogUI/catalogStartPage';
                     }
                 },
@@ -235,8 +260,6 @@
                 }
             });
         });
-
-        updateItemDescription(); // Initial call to update item description
     });
 </script>
 </body>

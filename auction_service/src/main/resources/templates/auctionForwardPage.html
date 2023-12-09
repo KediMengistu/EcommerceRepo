@@ -82,13 +82,30 @@
                                 if (catalog == null) {
                                     populateNotApplicable();
                                 } else {
-                                    var currentPrice = auction.highestbid != 0 ? auction.highestbid : auction.startprice;
-                                    $('#item-description').html(
-                                        '<p><strong>Description:</strong> ' + catalog.itemdescription + '</p>' +
-                                        '<p><strong>Shipping Price:</strong> ' + catalog.shippingprice + '</p>' +
-                                        '<p><strong>Current Price:</strong> ' + currentPrice + '</p>' +
-                                        '<p><strong>Highest Bidder Id:</strong> ' + auction.highestbidderid + '</p>'
-                                    );
+                                    $.ajax({
+                                        url: '/ecommerce/user/id_getuser',
+                                        type: 'GET',
+                                        data: { id: auction.highestbidderid },
+                                        dataType: 'json',
+                                        success: function(user) {
+                                            if(user == null){
+                                                populateNotApplicable();
+                                            }
+                                            else{
+                                                var currentPrice = auction.highestbid != 0 ? auction.highestbid : auction.startprice;
+                                                $('#item-description').html(
+                                                    '<p><strong>Description:</strong> ' + catalog.itemdescription + '</p>' +
+                                                    '<p><strong>Shipping Price:</strong> ' + catalog.shippingprice + '</p>' +
+                                                    '<p><strong>Current Price:</strong> ' + currentPrice + '</p>' +
+                                                    '<p><strong>Highest Bidder Id:</strong> ' + auction.highestbidderid + '</p>' +
+                                                    '<p><strong>Highest Bidder UserName:</strong> ' + user.username + '</p>'
+                                                );
+                                            }
+                                        },
+                                        error: function() {
+                                            alert('Error with loading user info.');
+                                        }
+                                    });
                                 }
                             },
                             error: function() {
@@ -108,7 +125,9 @@
                 '<p><strong>Description:</strong> Not Applicable; Auction has Expired.</p>' +
                 '<p><strong>Shipping Price:</strong> Not Applicable; Auction has Expired.</p>' +
                 '<p><strong>Current Price:</strong> Not Applicable; Auction has Expired.</p>' +
-                '<p><strong>Highest Bidder:</strong> Not Applicable; Auction has Expired.</p>'
+                '<p><strong>Highest Bidder:</strong> Not Applicable; Auction has Expired.</p>' +
+                '<p><strong>Highest Bidder UserName:</strong> ' + user.username + '</p>'
+
             );
         }
 
@@ -190,22 +209,23 @@
                             success: function(user) {
                                 if (user != null && user.auctionid == auctionid) {
                                     clearInterval(auctionCheckInterval); // Stop the interval
-                                    window.location.href = 'http://localhost:8222/ecommerce/auction/auctionUI/auctionEndPage?auctionid=' + parseInt(auctionid, 10) + '&itemid=' + parseInt(itemid, 10) + '&userid=' + user.userid;
+                                    window.location.href = 'http://localhost:8222/ecommerce/auction/auctionUI/auctionEndPage?auctionid=' + auctionid + '&itemid=' + itemid + '&userid=' + user.userid;
                                 } else {
                                     alert('You did not submit a valid bid - we will redirect you back to the catalog start page.');
                                     clearInterval(auctionCheckInterval); // Stop the interval
-                                    window.location.href = 'http://localhost:8222/ecommerce/catalog/catalogUI/catalogSearchPage';
+                                    window.location.href = 'http://localhost:8222/ecommerce/catalog/catalogUI/catalogStartPage';
                                 }
-                            },q
+                            },
                             error: function() {
                                 alert('Error during the authentication process.');
                                 clearInterval(auctionCheckInterval); // Stop the interval
-                                window.location.href = 'http://localhost:8222/ecommerce/catalog/catalogUI/catalogSearchPage';
+                                window.location.href = 'http://localhost:8222/ecommerce/catalog/catalogUI/catalogStartPage';
                             }
                         });
                     }
                     else if (response === "Go Back") {
-                        alert('Auction expired and had no bids - automatically removed 4');
+                        alert('Auction expired and had no bids - automatically removed');
+                        clearInterval(auctionCheckInterval); // Stop the interval
                         window.location.href = 'http://localhost:8222/ecommerce/catalog/catalogUI/catalogStartPage';
                     }
                     else if (response === "Don't Serve Yet") {
@@ -215,7 +235,8 @@
                         //do nothing
                     }
                     else if (response === "Non-existent") {
-                        alert('Auction expired and had no bids - automatically removed 5');
+                        alert('Auction expired and had no bids - automatically removed');
+                        clearInterval(auctionCheckInterval); // Stop the interval
                         window.location.href = 'http://localhost:8222/ecommerce/catalog/catalogUI/catalogStartPage';
                     }
                 },
@@ -227,7 +248,7 @@
 
         $('#signOutButton').click(function() {
             $.ajax({
-                url: '/ecommerce/catalog/catalogUI/catalogSignOutPage',
+                url: '/ecommerce/auction/auctionUI/auctionSignOutPage',
                 type: 'GET',
                 success: function(response) {
                     window.location.href = 'http://localhost:8222/ecommerce/auction/auctionUI/auctionSignOutPage';

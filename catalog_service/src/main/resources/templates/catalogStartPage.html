@@ -49,29 +49,63 @@
 <script>
     $(document).ready(function() {
         $('#searchButton').click(function() {
-            // AJAX request to load search page
+            // First AJAX call to get the cookie
             $.ajax({
-                url: '/ecommerce/catalog/catalogUI/catalogSearchPage',
+                url: '/ecommerce/user/cookieName',
                 type: 'GET',
-                success: function(response) {
-                    window.location.href = 'http://localhost:8222/ecommerce/catalog/catalogUI/catalogSearchPage';
+                success: function(cookieValue) {
+                    // Second AJAX call to check session validity
+                    $.ajax({
+                        url: '/ecommerce/user/sessionChecker',
+                        type: 'GET',
+                        data: { existingSessionId: cookieValue },
+                        success: function(sessionValid) {
+                            if (sessionValid) {
+                                // Session is valid, proceed with loading search page
+                                window.location.href = 'http://localhost:8222/ecommerce/catalog/catalogUI/catalogSearchPage';
+                            } else {
+                                // Session is not valid, handle accordingly
+                                window.location.href = 'http://localhost:8222/ecommerce/catalog/catalogUI/catalogSignOutPage';
+                            }
+                        },
+                        error: function() {
+                            alert('Error during session check.');
+                        }
+                    });
                 },
                 error: function() {
-                    alert('Error with loading search page.');
+                    alert('Error getting cookie.');
                 }
             });
         });
 
         $('#sellButton').click(function() {
-            // AJAX request to load sell page
+            // First AJAX call to get the cookie
             $.ajax({
-                url: '/ecommerce/catalog/catalogUI/catalogSellPage',
+                url: '/ecommerce/user/cookieName',
                 type: 'GET',
-                success: function(response) {
-                    window.location.href = 'http://localhost:8222/ecommerce/catalog/catalogUI/catalogSellPage';
+                success: function(cookieValue) {
+                    // Second AJAX call to check session validity
+                    $.ajax({
+                        url: '/ecommerce/user/sessionChecker',
+                        type: 'GET',
+                        data: { existingSessionId: cookieValue },
+                        success: function(sessionValid) {
+                            if (sessionValid) {
+                                // Session is valid, proceed with loading sell page
+                                window.location.href = 'http://localhost:8222/ecommerce/catalog/catalogUI/catalogSellPage';
+                            } else {
+                                // Session is not valid, handle accordingly
+                                window.location.href = 'http://localhost:8222/ecommerce/catalog/catalogUI/catalogSignOutPage';
+                            }
+                        },
+                        error: function() {
+                            alert('Error during session check.');
+                        }
+                    });
                 },
                 error: function() {
-                    alert('Error with loading sell page.');
+                    alert('Error getting cookie.');
                 }
             });
         });

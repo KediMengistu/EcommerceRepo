@@ -25,6 +25,12 @@ public class PaymentController {
          paymentService.load(catauction);
     }
 
+    //creates the receipt for the ended auction.
+    @GetMapping("/id_getreceipt")
+    public Receipt getReceiptFromId(@RequestParam int auctionid){
+        return paymentService.getReceiptFromId(auctionid);
+    }
+
     //retuns list of receipt info for auctions that have been noted as expired.
     @GetMapping("/allauctionreceipt")
     List<Receipt> getAllReceipts(){

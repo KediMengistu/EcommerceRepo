@@ -2,6 +2,7 @@ package com.ecommerce.payment_service;
 
 import com.ecommerce.payment_service.Client.AuctionClient;
 import com.ecommerce.payment_service.Client.UserClient;
+import com.ecommerce.payment_service.IncomingRequestObjectBodies.Bid;
 import com.ecommerce.payment_service.IncomingRequestObjectBodies.CatalogAndAuctionRequestBody;
 import com.ecommerce.payment_service.IncomingRequestObjectBodies.PaymentInfo;
 import com.ecommerce.payment_service.OtherServiceObjects.Auction;
@@ -81,6 +82,19 @@ public class PaymentService {
                 //expedited cost for paid item derived from catalog table.
                 receipt.setExpeditedcost(cat.getExpeditedcost());
 
+                //removing non-winners from auction.
+                Bid bid;
+                List<Bid> bidList = auctionclient.getallbids();
+                for(int i=0; i< bidList.size(); i++){
+                    bid = bidList.get(i);
+                    if(bid!=null && bid.getAuctionid()==auction.getAuctionid()){
+                        if(bid.getBidderid()!=auction.getHighestbidderid()){
+                            User nonwinner = userclient.getUserFromId(bid.getBidderid());
+                            userclient.setOutOfAuction(nonwinner.getUsername());
+                        }
+                    }
+                }
+
                 //obtaining default total.
                 //default includes no expedited shipping
                 totalcost = cat.getShippingprice() + auction.getHighestbid();
@@ -147,6 +161,9 @@ public class PaymentService {
                             pay.setReceiptid(receipt.getReceiptid());
                             paymentRepository.save(pay);
 
+                            //Now remove the winning person from the auction
+                            userclient.setOutOfAuction(user.getUsername());
+
                             //once payment for auction is confirmed, auction can finally be removed.
                             auctionclient.deleteAuction(receipt.getAuctionid());
                             return true;
@@ -180,5 +197,15 @@ public class PaymentService {
     //provides a list of all the payments.
     List<Payment> getAllPaymentInfo(){
         return paymentRepository.findAll();
+    }
+
+    public Receipt getReceiptFromId(int auctionid) {
+        List<Receipt> receiptList = receiptRepository.findAll();
+        for(Receipt r: receiptList){
+            if(r!=null && r.getAuctionid()==auctionid){
+                return r;
+            }
+        }
+        return null;
     }
 }
