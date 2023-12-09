@@ -115,7 +115,7 @@ public class PaymentService {
     }
 
     //used to pay for item that was won.
-    public boolean payForItem(PaymentInfo paymentInfo,Model model) {
+    public boolean payForItem(PaymentInfo paymentInfo) {
         //local fields.
         User user;
         Optional<Receipt> opReceipt;
@@ -162,7 +162,6 @@ public class PaymentService {
                             pay.setUsercardexpdate(paymentInfo.getExpdate());
                             pay.setUsercardsecuritycode(paymentInfo.getSecuritycode());
                             pay.setReceiptid(receipt.getReceiptid());
-                            pay.setTotalpaid(paymentInfo.getTotalpaid());
                             paymentRepository.save(pay);
 
                             //Now remove the winning person from the auction
@@ -173,12 +172,11 @@ public class PaymentService {
                             return true;
                         }
                     }
-                    return false;
                 }
+                return false;
             }
         }
     }
-
     private boolean checkPayInfo(int cardnum, String cardfname, String cardlname, LocalDate expdate, int securitycode) {
         if(String.valueOf(cardnum).length() != 9){
             return false;
@@ -203,48 +201,48 @@ public class PaymentService {
         return paymentRepository.findAll();
     }
 
-    public String getpaymentpage(PaymentInfo paymentInfo) {
-         //check for sessionid/check user
-        Receipt receipt = receiptRepository.findByauctionid(itemid).get();
-
-        if(userid != receipt.getPayerid())
-            return "notwinner";
-        Double totalshipping;
-        if(expidited){
-        totalshipping = receipt.getShippingprice() + receipt.getExpeditedcost();}
-        else  totalshipping = receipt.getShippingprice() + receipt.getExpeditedcost();
-
-        User user = userclient.findPayerFromId(userid);
-        Winner winner = new Winner(user.getFirstname(), user.getLastname(),
-                user.getStreetname(), user.getStreetnumber(), user.getCity(),
-                user.getCountry(), user.getPostalcode(), receipt.getItemname(),
-                itemid, receipt.getPayerid(), totalshipping, receipt.getDefaulttotal() + totalshipping );
-
-        model.addAttribute("winner", winner);
-
-        return "payment";
-    }
-
-    public String getreciept(int paymentid, int itemid, int userid, Model model) {
-        Optional<Receipt> receipt = receiptRepository.findByauctionid(itemid);
-        Optional<Payment> payment = paymentRepository.findById(paymentid);
-
-        if (payment.isEmpty() || receipt.isEmpty())
-            return "notpaid";
-        if (userid != receipt.get().getPayerid() || payment.get().getReceiptid() != receipt.get().getReceiptid())
-            return "false";
-
-
-        User user = userclient.findPayerFromId(userid);
-        Reciept receiptobject = new Reciept(user.getFirstname(), user.getLastname(),
-                user.getStreetname(), user.getStreetnumber(), user.getCity(),
-                user.getCountry(), user.getPostalcode(), receipt.get().getItemname(),
-                itemid, payment.get().getTotalpaid(), 10);
-
-        model.addAttribute("winner", receiptobject);
-
-        return "reciept";
-    }
+//    public String getpaymentpage(PaymentInfo paymentInfo) {
+//         //check for sessionid/check user
+//        Receipt receipt = receiptRepository.findByauctionid(itemid).get();
+//
+//        if(userid != receipt.getPayerid())
+//            return "notwinner";
+//        Double totalshipping;
+//        if(expidited){
+//        totalshipping = receipt.getShippingprice() + receipt.getExpeditedcost();}
+//        else  totalshipping = receipt.getShippingprice() + receipt.getExpeditedcost();
+//
+//        User user = userclient.findPayerFromId(userid);
+//        Winner winner = new Winner(user.getFirstname(), user.getLastname(),
+//                user.getStreetname(), user.getStreetnumber(), user.getCity(),
+//                user.getCountry(), user.getPostalcode(), receipt.getItemname(),
+//                itemid, receipt.getPayerid(), totalshipping, receipt.getDefaulttotal() + totalshipping );
+//
+//        model.addAttribute("winner", winner);
+//
+//        return "payment";
+//    }
+//
+//    public String getreciept(int paymentid, int itemid, int userid, Model model) {
+//        Optional<Receipt> receipt = receiptRepository.findByauctionid(itemid);
+//        Optional<Payment> payment = paymentRepository.findById(paymentid);
+//
+//        if (payment.isEmpty() || receipt.isEmpty())
+//            return "notpaid";
+//        if (userid != receipt.get().getPayerid() || payment.get().getReceiptid() != receipt.get().getReceiptid())
+//            return "false";
+//
+//
+//        User user = userclient.findPayerFromId(userid);
+//        Reciept receiptobject = new Reciept(user.getFirstname(), user.getLastname(),
+//                user.getStreetname(), user.getStreetnumber(), user.getCity(),
+//                user.getCountry(), user.getPostalcode(), receipt.get().getItemname(),
+//                itemid, payment.get().getTotalpaid(), 10);
+//
+//        model.addAttribute("winner", receiptobject);
+//
+//        return "reciept";
+//    }
 
     public Receipt getReceiptFromId(int auctionid) {
         List<Receipt> receiptList = receiptRepository.findAll();

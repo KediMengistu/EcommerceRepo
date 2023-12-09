@@ -89,6 +89,20 @@
                 success: function(response) {
                     auctionItemExpired = response;
                     updateExpiredBidInfo();
+                    // AJAX call for user
+                    $.ajax({
+                        url: '/ecommerce/user/id_getuser',
+                        type: 'GET',
+                        data: { id: auctionItemExpired.highestbidderid},
+                        dataType: 'json',
+                        success: function(response) {
+                            user = response;
+                            callback();
+                        },
+                        error: function() {
+                            console.error('Error loading user information.');
+                        }
+                    });
                 },
                 error: function() {
                     console.error('Error loading expired auction item.');
@@ -107,21 +121,6 @@
                 },
                 error: function() {
                     console.error('Error loading expired catalog item.');
-                }
-            });
-
-            // AJAX call for user
-            $.ajax({
-                url: '/ecommerce/user/id_getuser',
-                type: 'GET',
-                data: { id: userid },
-                dataType: 'json',
-                success: function(response) {
-                    user = response;
-                    callback();
-                },
-                error: function() {
-                    console.error('Error loading user information.');
                 }
             });
         }
@@ -230,7 +229,7 @@
                             if (sessionValid) {
                                 // Session is valid, proceed with your nested AJAX request here
                                 $.ajax({
-                                    url: '/ecommerce/user/id_getreceipt',
+                                    url: '/ecommerce/payment/id_getreceipt',
                                     type: 'GET',
                                     data: { auctionid: auctionid },
                                     success: function(result) {
